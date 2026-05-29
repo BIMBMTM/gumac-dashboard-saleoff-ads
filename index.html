@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GUMAC · Atelier Digital — Báo cáo Hiệu suất</title>
+<title>GUMAC · Atelier Digital - Báo cáo Hiệu suất</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
 <style>
@@ -431,7 +431,7 @@ function toggleTheme(){
   if(window._charts)setTimeout(render,60);
 }
 // ============================================================
-// GUMAC DATA ENGINE — chạy được cả trong trình duyệt & Node test
+// GUMAC DATA ENGINE - chạy được cả trong trình duyệt & Node test
 // Xử lý: parse CSV, tách 2 bảng ADS, parse số kiểu VN,
 //        fuzzy-match tên chi nhánh, ghép theo NGÀY+CHI NHÁNH
 // ============================================================
@@ -650,7 +650,7 @@ async function startLoad(){
   // Nếu mở file từ ổ đĩa (file://) → trình duyệt sẽ chặn fetch tới HTTPS → chuyển ngay sang upload
   if(location.protocol==='file:'){
     document.getElementById('loader').style.display='none';
-    document.getElementById('srcMsg').textContent='Báo cáo đang mở trực tiếp từ ổ đĩa (file://) — trình duyệt không cho phép tải dữ liệu từ Google Sheet do chính sách bảo mật. Vui lòng tải lên 2 file CSV để xem báo cáo. (Mẹo: upload file này lên Drive/Server để tự động tải dữ liệu sau này.)';
+    document.getElementById('srcMsg').textContent='Báo cáo đang mở trực tiếp từ ổ đĩa (file://) - trình duyệt không cho phép tải dữ liệu từ Google Sheet do chính sách bảo mật. Vui lòng tải lên 2 file CSV để xem báo cáo. (Mẹo: upload file này lên Drive/Server để tự động tải dữ liệu sau này.)';
     document.getElementById('srcScreen').style.display='flex';return;
   }
   setStep('Đang kết nối Google Sheet & tải dữ liệu mới nhất...',10);
@@ -717,13 +717,13 @@ async function processUploads(){
 }
 
 /* ============ NUMBER FORMAT ============ */
-const fmtN=(n,d=0)=>n==null||isNaN(n)?'—':n.toLocaleString('vi-VN',{maximumFractionDigits:d,minimumFractionDigits:d});
-function fmtVND(n){if(n==null||isNaN(n))return '—';
+const fmtN=(n,d=0)=>n==null||isNaN(n)?'-':n.toLocaleString('vi-VN',{maximumFractionDigits:d,minimumFractionDigits:d});
+function fmtVND(n){if(n==null||isNaN(n))return '-';
   if(Math.abs(n)>=1e9)return (n/1e9).toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+' tỷ';
   if(Math.abs(n)>=1e6)return (n/1e6).toLocaleString('vi-VN',{minimumFractionDigits:2,maximumFractionDigits:2})+' tr';
   if(Math.abs(n)>=1e3)return (n/1e3).toLocaleString('vi-VN',{maximumFractionDigits:0})+'K';
   return fmtN(n);}
-const fmtPct=(n,d=1)=>n==null||isNaN(n)?'—':n.toLocaleString('vi-VN',{maximumFractionDigits:d,minimumFractionDigits:d})+'%';
+const fmtPct=(n,d=1)=>n==null||isNaN(n)?'-':n.toLocaleString('vi-VN',{maximumFractionDigits:d,minimumFractionDigits:d})+'%';
 
 /* ============ FILTER STATE & HELPERS ============ */
 const FS={month:null,branches:new Set(),regions:new Set(),stypes:new Set(),search:''};
@@ -851,7 +851,7 @@ function mkChart(id,cfg,opt={}){
   cfg.options.plugins.tooltip={backgroundColor:css('--panel'),titleColor:css('--txt'),bodyColor:css('--txt2'),
     borderColor:css('--line2'),borderWidth:1,padding:12,cornerRadius:8,titleFont:{weight:'700'},usePointStyle:true,
     callbacks:opt.tooltip||{}};
-  // datalabels mặc định (điểm 7) — LUÔN hiện giá trị trên biểu đồ
+  // datalabels mặc định (điểm 7) - LUÔN hiện giá trị trên biểu đồ
   if(cfg.options.plugins.datalabels==null){
     cfg.options.plugins.datalabels=opt.datalabels!==false?{
       color:opt.dlColor||css('--txt'),font:{size:opt.dlSize||9,weight:'700'},
@@ -910,7 +910,7 @@ function renderOverview(){
   if(!spendOK)noteParts.push('chưa có <b>chi phí quảng cáo</b>');
   if(!hasTraffic(ym))noteParts.push('chưa có <b>Traffic</b>');
   if(!tgtOK)noteParts.push('chưa có <b>mục tiêu (target)</b>');
-  const note=noteParts.length?`<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Kỳ <b>${ymLabel(ym)}</b> ${noteParts.join(', ')} trong nguồn dữ liệu — các chỉ số liên quan sẽ hiển thị <b>N/A</b> hoặc 0. Năm 2026 có đầy đủ chi phí, traffic & mục tiêu.</div></div>`:'';
+  const note=noteParts.length?`<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Kỳ <b>${ymLabel(ym)}</b> ${noteParts.join(', ')} trong nguồn dữ liệu - các chỉ số liên quan sẽ hiển thị <b>N/A</b> hoặc 0. Năm 2026 có đầy đủ chi phí, traffic & mục tiêu.</div></div>`:'';
 
   // KPI (điểm 2,4: công thức mới)
   const I={rev:'M3 3v18h18M7 14l4-4 3 3 5-6',ord:'M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0',
@@ -941,7 +941,7 @@ function renderOverview(){
     return `<div class="kpi"><div class="kpi-label"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="${k.ic}"/></svg></span>${k.l}</div>
       <div class="kpi-val">${k.v}</div><div class="kpi-foot">${foot}</div></div>`;}).join('');
 
-  // điểm 5: BẢNG SO SÁNH ĐẦY ĐỦ — mọi chỉ số, thực đạt / mục tiêu / %MT / MoM / YoY
+  // điểm 5: BẢNG SO SÁNH ĐẦY ĐỦ - mọi chỉ số, thực đạt / mục tiêu / %MT / MoM / YoY
   const R=[
     ['Doanh thu',cur.rev,cur.rev_t,prev.rev,prevY.rev,'vnd'],
     ['Đơn hàng',cur.ord,cur.ord_t,prev.ord,prevY.ord,'n'],
@@ -963,10 +963,10 @@ function renderOverview(){
   const fc=(v,t)=>t==='vnd'?fmtVND(v):t==='pct'?fmtPct(v):t==='d2'?fmtN(v,2):fmtN(v);
   const cl=v=>v==null?'':(v>0.05?'pos':v<-0.05?'neg':'');
   const cmpRows=R.map(([n,c,t,p,y,ty])=>{const mom=pct(c,p),yoy=pct(c,y),tg=t?c/t*100:null;
-    return `<tr><td><b>${n}</b></td><td>${fc(c,ty)}</td><td>${t?fc(t,ty):'—'}</td>
-      <td>${tg!=null?`<span class="chip ${tg>=100?'up':tg>=85?'flat':'down'}">${fmtPct(tg,0)}</span>`:'—'}</td>
-      <td class="${cl(mom)}">${mom!=null?(mom>0?'+':'')+fmtN(mom,1)+'%':'—'}</td>
-      <td class="${cl(yoy)}">${yoy!=null?(yoy>0?'+':'')+fmtN(yoy,1)+'%':'—'}</td></tr>`;}).join('');
+    return `<tr><td><b>${n}</b></td><td>${fc(c,ty)}</td><td>${t?fc(t,ty):'-'}</td>
+      <td>${tg!=null?`<span class="chip ${tg>=100?'up':tg>=85?'flat':'down'}">${fmtPct(tg,0)}</span>`:'-'}</td>
+      <td class="${cl(mom)}">${mom!=null?(mom>0?'+':'')+fmtN(mom,1)+'%':'-'}</td>
+      <td class="${cl(yoy)}">${yoy!=null?(yoy>0?'+':'')+fmtN(yoy,1)+'%':'-'}</td></tr>`;}).join('');
 
   // điểm 6 + (mới) so sánh tuần với tháng trước: tuần N tháng này vs tuần N tháng trước
   const wk=weekAgg(ym),wkPrev=weekAgg(pm),wkPrevMap={};wkPrev.forEach(w=>wkPrevMap[w.w]=w);
@@ -980,7 +980,7 @@ function renderOverview(){
     <td>${fmtN(w.traf)}<br>${dl(w.traf,p.traf)}</td>
     <td>${fmtVND(w.atv)}</td><td>${fmtPct(w.crv)}</td>
     <td>${fmtN(w.leads)}<br>${dl(w.leads,p.leads)}</td>
-    <td>${w.spend>0?fmtVND(w.spend):'—'}${w.spend>0&&p.spend>0?'<br>'+dl(w.spend,p.spend):''}</td></tr>`;}).join('');
+    <td>${w.spend>0?fmtVND(w.spend):'-'}${w.spend>0&&p.spend>0?'<br>'+dl(w.spend,p.spend):''}</td></tr>`;}).join('');
 
   document.getElementById('page-overview').innerHTML=`
     <div class="page-head"><div><h1>Hiệu suất tổng quan</h1>
@@ -1031,7 +1031,7 @@ function buildMonCtrl(cid,chartId){
     {dlFmt:v=>(v==null||v===0)?'':(meta[2]==='vnd'?shortNum(v):fmtN(v)),
      tooltip:{label:c=>c.dataset.label+': '+(meta[2]==='vnd'?fmtVND(c.raw):fmtN(c.raw))}});
 }
-// điểm 8: bảng ngày — chỉ số KD đối chiếu mục tiêu
+// điểm 8: bảng ngày - chỉ số KD đối chiếu mục tiêu
 function renderDayTable(tid,ym){
   const dim=daysInMonth(ym);let rows='';
   for(let d=1;d<=dim;d++){const ds=ym+'-'+String(d).padStart(2,'0');const rr=DAILY.filter(r=>r.date===ds&&passFilter(r));if(!rr.length)continue;
@@ -1040,7 +1040,7 @@ function renderDayTable(tid,ym){
     rows+=`<tr><td><b>${ds.slice(8)}/${ds.slice(5,7)}</b></td>
       <td>${mk(a.rev,a.rev_t,fmtVND)}</td><td>${mk(a.ord,a.ord_t,fmtN)}</td><td>${mk(a.traf,a.traf_t,fmtN)}</td>
       <td>${fmtVND(a.atv)}</td><td>${fmtPct(a.crv)}</td>
-      <td>${fmtN(a.leads)}</td><td>${fmtVND(a.impr)}</td><td>${fmtN(a.peng)}</td><td>${a.spend>0?fmtVND(a.spend):'—'}</td><td>${fmtN(a.offpur)}</td></tr>`;}
+      <td>${fmtN(a.leads)}</td><td>${fmtVND(a.impr)}</td><td>${fmtN(a.peng)}</td><td>${a.spend>0?fmtVND(a.spend):'-'}</td><td>${fmtN(a.offpur)}</td></tr>`;}
   document.getElementById(tid).innerHTML=`<thead><tr><th>Ngày</th><th>DThu /MT</th><th>Đơn /MT</th><th>Traffic /MT</th><th>ATV</th><th>CRV</th><th>Lead</th><th>Hiển thị</th><th>Tương tác</th><th>CP QC</th><th>Đơn QC</th></tr></thead><tbody>${rows||'<tr><td colspan=11 class=empty>Không có dữ liệu</td></tr>'}</tbody>`;
 }
 </script>
@@ -1095,7 +1095,7 @@ function renderStores(){
   const groupCards=GROUP_DEF.map(g=>{const mem=cls.filter(c=>c.group&&c.group.id===g.id);
     return `<div class="gcard" style="border-left-color:${TAGCOLOR[g.tag]}">
       <h4><span>${g.id} · ${g.name}</span><span class="gtag" style="background:${TAGCOLOR[g.tag]}22;color:${TAGCOLOR[g.tag]}">${mem.length} CH</span></h4>
-      <div class="gdesc">${g.desc}</div><div class="gbranches">${mem.length?mem.map(m=>m.branch).join(', '):'—'}</div></div>`;}).join('');
+      <div class="gdesc">${g.desc}</div><div class="gbranches">${mem.length?mem.map(m=>m.branch).join(', '):'-'}</div></div>`;}).join('');
 
   const sorted=[...cls].sort((a,b)=>b.rev-a.rev);
   const detail=sorted.map(c=>{const tg=v=>v?'<span class="miniok">✓</span>':'<span class="minino">✗</span>';
@@ -1103,10 +1103,10 @@ function renderStores(){
     const shTxt=c.shareBetter==null?'':(c.shareBetter?'<span class="chip up">↑</span>':'<span class="chip down">↓</span>');
     return `<tr><td><b>${c.branch}</b><br><span style="font-size:10px;color:var(--txt3)">${c.region} · ${c.stype}</span></td>
       <td><span class="tag" style="background:${TAGCOLOR[c.group.tag]}22;color:${TAGCOLOR[c.group.tag]}">${c.group.id}</span></td>
-      <td>${fmtVND(c.rev)}</td><td>${c.rev_t?fmtPct(c.rev/c.rev_t*100,0):'—'}</td>
+      <td>${fmtVND(c.rev)}</td><td>${c.rev_t?fmtPct(c.rev/c.rev_t*100,0):'-'}</td>
       <td>${fmtN(c.traf)} ${c.traf_t?tg(c.trafOK):''}</td><td>${fmtPct(c.crv)} ${c.crvT?tg(c.crvOK):''}</td>
       <td>${fmtVND(c.atv)} ${c.atvT?tg(c.atvOK):''}</td>
-      <td>${c.spend>0?fmtVND(c.cpl):'—'} ${cplTxt}</td><td>${fmtPct(c.ordShare)} ${shTxt}</td></tr>`;}).join('');
+      <td>${c.spend>0?fmtVND(c.cpl):'-'} ${cplTxt}</td><td>${fmtPct(c.ordShare)} ${shTxt}</td></tr>`;}).join('');
 
   const stars=cls.filter(c=>c.group.tag==='good'),warns=cls.filter(c=>c.group.tag==='warn'),bad=cls.filter(c=>c.group.tag==='bad');
 
@@ -1171,9 +1171,9 @@ function renderForecast(){
 
   const tbl=rows.map(r=>`<tr><td><b>${r.branch}</b><br><span style="font-size:10px;color:var(--txt3)">${r.region}</span></td>
     <td>${fmtVND(r.cur)}</td><td><b style="color:var(--amber2)">${fmtVND(r.fRev)}</b></td>
-    <td>${fmtN(r.fOrd)}</td><td>${fmtN(r.fTraf)}</td><td>${r.tgt?fmtVND(r.tgt):'—'}</td>
-    <td>${r.tgt?`<span class="chip ${r.fRev/r.tgt*100>=100?'up':r.fRev/r.tgt*100>=90?'flat':'down'}">${fmtPct(r.fRev/r.tgt*100,0)}</span>`:'—'}</td>
-    <td>${r.fSpend>0?fmtVND(r.fSpend):'—'}</td></tr>`).join('');
+    <td>${fmtN(r.fOrd)}</td><td>${fmtN(r.fTraf)}</td><td>${r.tgt?fmtVND(r.tgt):'-'}</td>
+    <td>${r.tgt?`<span class="chip ${r.fRev/r.tgt*100>=100?'up':r.fRev/r.tgt*100>=90?'flat':'down'}">${fmtPct(r.fRev/r.tgt*100,0)}</span>`:'-'}</td>
+    <td>${r.fSpend>0?fmtVND(r.fSpend):'-'}</td></tr>`).join('');
 
   document.getElementById('page-forecast').innerHTML=`
     <div class="page-head"><div><h1>Dự báo doanh số · ${ymLabel(ym)}</h1>
@@ -1196,7 +1196,7 @@ function renderForecast(){
     <div class="kpi-grid">
       <div class="kpi"><div class="kpi-label"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/></svg></span>Đơn dự báo cả tháng</div><div class="kpi-val">${fmtN(T.fOrd)}</div></div>
       <div class="kpi"><div class="kpi-label"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/></svg></span>Traffic dự báo cả tháng</div><div class="kpi-val">${fmtN(T.fTraf)}</div></div>
-      <div class="kpi"><div class="kpi-label"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/></svg></span>Chi phí QC dự báo</div><div class="kpi-val">${T.fSpend>0?fmtVND(T.fSpend):'—'}</div>
+      <div class="kpi"><div class="kpi-label"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22"/></svg></span>Chi phí QC dự báo</div><div class="kpi-val">${T.fSpend>0?fmtVND(T.fSpend):'-'}</div>
         <div class="kpi-foot"><span class="chip-lbl">% trên DThu DB</span>${T.fSpend>0?`<span class="chip tgt">${fmtPct(T.fSpend/T.fRev*100)}</span>`:'<span class="chip na">N/A</span>'}</div></div>
       <div class="kpi"><div class="kpi-label"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span>ATV dự báo</div><div class="kpi-val">${fmtVND(T.fOrd?T.fRev/T.fOrd:0)}</div></div>
     </div>
@@ -1204,7 +1204,7 @@ function renderForecast(){
       <div class="chart-box lg"><canvas id="fcChart"></canvas></div></div>
     <div class="card"><div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/></svg>Dự báo chi tiết từng cửa hàng</div>
       <div class="tbl-wrap" style="max-height:520px"><table><thead><tr><th>Cửa hàng</th><th>DThu đã đạt</th><th>DThu DB cả tháng</th><th>Đơn DB</th><th>Traffic DB</th><th>Mục tiêu</th><th>%MT (DB)</th><th>CP QC DB</th></tr></thead>
-      <tbody>${tbl}<tr class="totalrow"><td>TỔNG</td><td>${fmtVND(T.cur)}</td><td>${fmtVND(T.fRev)}</td><td>${fmtN(T.fOrd)}</td><td>${fmtN(T.fTraf)}</td><td>${T.tgt?fmtVND(T.tgt):'—'}</td><td>${T.tgt?fmtPct(T.fRev/T.tgt*100,0):'—'}</td><td>${T.fSpend>0?fmtVND(T.fSpend):'—'}</td></tr></tbody></table></div></div>`;
+      <tbody>${tbl}<tr class="totalrow"><td>TỔNG</td><td>${fmtVND(T.cur)}</td><td>${fmtVND(T.fRev)}</td><td>${fmtN(T.fOrd)}</td><td>${fmtN(T.fTraf)}</td><td>${T.tgt?fmtVND(T.tgt):'-'}</td><td>${T.tgt?fmtPct(T.fRev/T.tgt*100,0):'-'}</td><td>${T.fSpend>0?fmtVND(T.fSpend):'-'}</td></tr></tbody></table></div></div>`;
   drawForecastChart(ym,elapsed,dim);
 }
 function drawForecastChart(ym,elapsed,dim){
@@ -1258,7 +1258,7 @@ function renderAds(){
 
   const wk=weekAgg(ym);
   const wkRows=wk.map(w=>`<tr><td><b>Tuần ${w.w}</b></td><td>${fmtVND(w.reach)}</td><td>${fmtVND(w.impr)}</td><td>${fmtN(w.leads)}</td>
-    <td>${w.spend>0?fmtVND(w.spend):'—'}</td><td>${w.spend>0&&w.leads?fmtVND(w.spend/w.leads):'—'}</td><td>${fmtN(w.offpur)}</td><td>${w.offrev>0?fmtVND(w.offrev):'—'}</td></tr>`).join('');
+    <td>${w.spend>0?fmtVND(w.spend):'-'}</td><td>${w.spend>0&&w.leads?fmtVND(w.spend/w.leads):'-'}</td><td>${fmtN(w.offpur)}</td><td>${w.offrev>0?fmtVND(w.offrev):'-'}</td></tr>`).join('');
 
   const regMap={};for(const r of DAILY){if(r.date.slice(0,7)!==ym||!passFilter(r))continue;(regMap[r.region]=regMap[r.region]||[]).push(r);}
   const regData=Object.keys(regMap).map(rg=>({region:rg,...agg(regMap[rg])}));
@@ -1269,7 +1269,7 @@ function renderAds(){
 
   document.getElementById('page-ads').innerHTML=`
     <div class="page-head"><div><h1>Quảng cáo tổng quan</h1><div class="ph-sub">Hiệu suất quảng cáo chi tiết · Kỳ <b>${ymLabel(ym)}</b> · MoM vs ${ymLabel(pm)}</div></div></div>
-    ${!spendOK?`<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Kỳ <b>${ymLabel(ym)}</b> chưa có chi phí QC — các chỉ số CPM, CP/Lead, CP/đơn hiển thị N/A.</div></div>`:''}
+    ${!spendOK?`<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Kỳ <b>${ymLabel(ym)}</b> chưa có chi phí QC - các chỉ số CPM, CP/Lead, CP/đơn hiển thị N/A.</div></div>`:''}
     <div class="sec-h"><span class="sn">1</span>Tổng quan chỉ số quảng cáo</div>
     <div class="kpi-grid">${kpiHTML}</div>
     <div class="card" style="margin-bottom:18px"><div class="card-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/></svg>2 · Phân tích theo tuần</div>
@@ -1284,11 +1284,11 @@ function renderAds(){
       <div class="tbl-wrap" style="max-height:420px"><table id="adDayTable"></table></div></div>
     <div class="row2"><div class="card"><div class="card-title" style="color:var(--good)">7 · Top 5 cửa hàng QC hiệu quả</div>
       <div class="tbl-wrap"><table><thead><tr><th>Cửa hàng</th><th>Đơn QC</th><th>Đơn Ads%</th><th>Lead</th><th>CP/Lead</th></tr></thead><tbody>
-      ${topAd.map(b=>`<tr><td><b>${b.branch}</b></td><td>${fmtN(b.offpur)}</td><td class="pos">${fmtPct(b.ordShare)}</td><td>${fmtN(b.leads)}</td><td>${b.spend>0?fmtVND(b.cpl):'—'}</td></tr>`).join('')||'<tr><td colspan=5 class=empty>—</td></tr>'}</tbody></table></div></div>
+      ${topAd.map(b=>`<tr><td><b>${b.branch}</b></td><td>${fmtN(b.offpur)}</td><td class="pos">${fmtPct(b.ordShare)}</td><td>${fmtN(b.leads)}</td><td>${b.spend>0?fmtVND(b.cpl):'-'}</td></tr>`).join('')||'<tr><td colspan=5 class=empty>-</td></tr>'}</tbody></table></div></div>
       <div class="card"><div class="card-title" style="color:var(--bad)">Top 5 cửa hàng chỉ số chưa tốt</div>
       <div class="tbl-wrap"><table><thead><tr><th>Cửa hàng</th><th>Vấn đề</th><th>Đơn Ads%</th><th>Reach</th></tr></thead><tbody>
       ${lowAd.map(b=>{let iss=[];if(b.ordShare<5)iss.push('Đơn Ads thấp');if(b.spend>0&&b.cpl>cur.cpl*1.5)iss.push('CP/Lead cao');if(b.leads<10)iss.push('Ít lead');
-        return `<tr><td><b>${b.branch}</b></td><td><span class="tag" style="background:${BAD}22;color:${BAD}">${iss[0]||'Hiệu suất thấp'}</span></td><td class="neg">${fmtPct(b.ordShare)}</td><td>${fmtVND(b.reach)}</td></tr>`;}).join('')||'<tr><td colspan=4 class=empty>—</td></tr>'}</tbody></table></div></div></div>`;
+        return `<tr><td><b>${b.branch}</b></td><td><span class="tag" style="background:${BAD}22;color:${BAD}">${iss[0]||'Hiệu suất thấp'}</span></td><td class="neg">${fmtPct(b.ordShare)}</td><td>${fmtVND(b.reach)}</td></tr>`;}).join('')||'<tr><td colspan=4 class=empty>-</td></tr>'}</tbody></table></div></div></div>`;
   buildAdDayCtrl(ym);drawAdMonChart();drawRegPie(regData);buildRegBarCtrl(regData);renderAdDayTable('adDayTable',ym);
 }
 function buildAdDayCtrl(ym){document.getElementById('adDayCtrl').innerHTML=AD_METRICS.map(m=>`<button class="cc-btn ${m[0]===adDaySel?'active':''}" onclick="adDaySel='${m[0]}';buildAdDayCtrl('${ym}')">${m[1]}</button>`).join('');
@@ -1317,10 +1317,10 @@ function buildRegBarCtrl(regData){window._regData=regData;
     {dlFmt:v=>isPct?fmtPct(v,0):(isVnd?shortNum(v):fmtN(v)),tooltip:{label:c=>meta[1]+': '+(isPct?fmtPct(c.raw):(isVnd?fmtVND(c.raw):fmtN(c.raw)))}});}
 function renderAdDayTable(tid,ym){const dim=daysInMonth(ym);let rows='';
   for(let d=1;d<=dim;d++){const ds=ym+'-'+String(d).padStart(2,'0');const rr=DAILY.filter(r=>r.date===ds&&passFilter(r));if(!rr.length)continue;const a=agg(rr);
-    rows+=`<tr><td><b>${ds.slice(8)}/${ds.slice(5,7)}</b></td><td>${fmtVND(a.reach)}</td><td>${fmtVND(a.impr)}</td><td>${fmtN(a.peng)}</td><td>${fmtN(a.leads)}</td><td>${a.spend>0?fmtVND(a.spend):'—'}</td><td>${a.spend>0?fmtVND(a.cpm):'—'}</td><td>${a.spend>0&&a.leads?fmtVND(a.cpl):'—'}</td><td>${fmtN(a.offpur)}</td><td>${a.offrev>0?fmtVND(a.offrev):'—'}</td></tr>`;}
+    rows+=`<tr><td><b>${ds.slice(8)}/${ds.slice(5,7)}</b></td><td>${fmtVND(a.reach)}</td><td>${fmtVND(a.impr)}</td><td>${fmtN(a.peng)}</td><td>${fmtN(a.leads)}</td><td>${a.spend>0?fmtVND(a.spend):'-'}</td><td>${a.spend>0?fmtVND(a.cpm):'-'}</td><td>${a.spend>0&&a.leads?fmtVND(a.cpl):'-'}</td><td>${fmtN(a.offpur)}</td><td>${a.offrev>0?fmtVND(a.offrev):'-'}</td></tr>`;}
   document.getElementById(tid).innerHTML=`<thead><tr><th>Ngày</th><th>Reach</th><th>Hiển thị</th><th>Tương tác</th><th>Lead</th><th>Chi phí</th><th>CPM</th><th>CP/Lead</th><th>Đơn QC</th><th>DT QC</th></tr></thead><tbody>${rows||'<tr><td colspan=10 class=empty>Không có dữ liệu</td></tr>'}</tbody>`;}
 
-/* ============ QC CHI TIẾT CỬA HÀNG (điểm 11 — scorecard trực quan) ============ */
+/* ============ QC CHI TIẾT CỬA HÀNG (điểm 11 - scorecard trực quan) ============ */
 function renderAdStores(){
   const ym=FS.month,pm=ymPrev(ym);
   const ba=branchAgg(ym),prevBa=branchAgg(pm),pmap={};prevBa.forEach(b=>pmap[b.branch]=b);
@@ -1346,7 +1346,7 @@ function renderAdStores(){
         <div class="sc-m"><div class="l">Đơn từ QC</div><div class="v">${fmtN(b.offpur)}</div></div>
         <div class="sc-m"><div class="l">Đơn Ads / Tổng</div><div class="v">${fmtPct(b.ordShare)}</div></div>
         <div class="sc-m"><div class="l">Lead ${leadMoM}</div><div class="v">${fmtN(b.leads)}</div></div>
-        <div class="sc-m"><div class="l">CP/Lead ${cplMoM}</div><div class="v">${b.spend>0?fmtVND(b.cpl):'—'}</div></div>
+        <div class="sc-m"><div class="l">CP/Lead ${cplMoM}</div><div class="v">${b.spend>0?fmtVND(b.cpl):'-'}</div></div>
       </div>
       <div class="sc-bars">
         ${bar('Đơn Ads%',b.ordShare,mx.ordShare,AMBER,v=>fmtPct(v,0))}
@@ -1359,11 +1359,11 @@ function renderAdStores(){
   document.getElementById('page-adstores').innerHTML=`
     <div class="page-head"><div><h1>QC chi tiết từng cửa hàng</h1><div class="ph-sub">Thẻ điểm hiệu suất quảng cáo mỗi cửa hàng · Kỳ <b>${ymLabel(ym)}</b> · xếp theo điểm QC</div></div></div>
     <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
-      <div><b>Điểm QC (0–100)</b> tổng hợp từ: Tỷ trọng đơn Ads/Tổng (35%), Đơn từ QC (25%), Lead (20%), ROAS${spendOK?'':' (thay bằng Reach khi chưa có chi phí)'} (20%) — chuẩn hoá theo cửa hàng cao nhất. Mũi tên cạnh Lead & CP/Lead là biến động so với ${ymLabel(pm)}.</div></div>
+      <div><b>Điểm QC (0–100)</b> tổng hợp từ: Tỷ trọng đơn Ads/Tổng (35%), Đơn từ QC (25%), Lead (20%), ROAS${spendOK?'':' (thay bằng Reach khi chưa có chi phí)'} (20%) - chuẩn hoá theo cửa hàng cao nhất. Mũi tên cạnh Lead & CP/Lead là biến động so với ${ymLabel(pm)}.</div></div>
     <div class="fc-classify">${cards.map(c=>c.html).join('')||'<div class="empty">Không có dữ liệu quảng cáo cho lựa chọn hiện tại</div>'}</div>`;
 }
 
-/* ============ ĐỊNH DẠNG QC (điểm 12 — phân tích lại có ý nghĩa) ============ */
+/* ============ ĐỊNH DẠNG QC (điểm 12 - phân tích lại có ý nghĩa) ============ */
 const GOAL_VN={POST_ENGAGEMENT:'Tương tác bài viết',REACH:'Tiếp cận',THRUPLAY:'Xem video',LINK_CLICKS:'Click link',
   REPLIES:'Tin nhắn (Replies)',LEAD_GENERATION:'Thu thập Lead',PAGE_LIKES:'Thích trang',OFFSITE_CONVERSIONS:'Chuyển đổi',
   QUALITY_CALL:'Cuộc gọi',MESSAGING_PURCHASE_CONVERSION:'Chuyển đổi mua (Msg)',CONVERSATIONS:'Hội thoại',IMPRESSIONS:'Hiển thị',KHÁC:'Khác'};
@@ -1388,8 +1388,8 @@ function renderFormats(){
   const cmpRows=goals.map(g=>{const c=cur[g],p=prev[g]||{};
     const eff=c.reach?c.offpur/c.reach*1e6:0; // đơn trên 1 triệu reach
     return `<tr><td><b>${goalVN(g)}</b></td><td>${fmtVND(c.reach)}</td><td>${deltaChip(c.reach,p.reach)}</td>
-      <td>${c.spend>0?fmtVND(c.spend):'—'}</td><td>${fmtN(c.offpur)}</td><td>${deltaChip(c.offpur,p.offpur)}</td>
-      <td>${c.spend>0&&c.offpur?fmtVND(c.spend/c.offpur):'—'}</td><td>${fmtN(eff,1)}</td></tr>`;}).join('');
+      <td>${c.spend>0?fmtVND(c.spend):'-'}</td><td>${fmtN(c.offpur)}</td><td>${deltaChip(c.offpur,p.offpur)}</td>
+      <td>${c.spend>0&&c.offpur?fmtVND(c.spend/c.offpur):'-'}</td><td>${fmtN(eff,1)}</td></tr>`;}).join('');
 
   // điểm 12: thay bảng "định dạng vô nghĩa" bằng MA TRẬN: cửa hàng × mục tiêu chính, thể hiện mục tiêu nào đem lại nhiều đơn nhất + cảnh báo
   const branchGoal={};
@@ -1414,11 +1414,11 @@ function renderFormats(){
       <div class="card"><div class="card-title">1 · Tỷ trọng các mục tiêu quảng cáo</div><div class="chart-box sm"><canvas id="goalPie"></canvas></div></div>
       <div class="card"><div class="card-title">Hiệu quả: Reach vs Đơn QC theo mục tiêu</div><div class="chart-box sm"><canvas id="goalBar"></canvas></div></div></div>
     <div class="card" style="margin-bottom:18px"><div class="card-title">2 · So sánh hiệu suất từng mục tiêu với tháng trước</div>
-      <div class="card-sub">Cột "Đơn/1tr Reach" = số đơn QC trên mỗi triệu lượt tiếp cận — đo hiệu quả thực của mục tiêu</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Mục tiêu</th><th>Reach</th><th>MoM</th><th>Chi phí</th><th>Đơn QC</th><th>MoM Đơn</th><th>CP/Đơn</th><th>Đơn/1tr Reach</th></tr></thead><tbody>${cmpRows||'<tr><td colspan=8 class=empty>—</td></tr>'}</tbody></table></div></div>
+      <div class="card-sub">Cột "Đơn/1tr Reach" = số đơn QC trên mỗi triệu lượt tiếp cận - đo hiệu quả thực của mục tiêu</div>
+      <div class="tbl-wrap"><table><thead><tr><th>Mục tiêu</th><th>Reach</th><th>MoM</th><th>Chi phí</th><th>Đơn QC</th><th>MoM Đơn</th><th>CP/Đơn</th><th>Đơn/1tr Reach</th></tr></thead><tbody>${cmpRows||'<tr><td colspan=8 class=empty>-</td></tr>'}</tbody></table></div></div>
     <div class="card"><div class="card-title">3 · Ma trận mục tiêu hiệu quả theo cửa hàng</div>
       <div class="card-sub">Mục tiêu đem lại nhiều đơn nhất cho mỗi cửa hàng + cảnh báo mục tiêu tốn Reach nhưng không ra đơn</div>
-      <div class="tbl-wrap" style="max-height:520px"><table><thead><tr><th>Cửa hàng</th><th style="text-align:left">Mục tiêu hiệu quả nhất</th><th>Số mục tiêu</th><th>Tổng đơn QC</th><th>Tổng Reach</th><th style="text-align:left">Cảnh báo</th></tr></thead><tbody>${matrixRows||'<tr><td colspan=6 class=empty>—</td></tr>'}</tbody></table></div></div>`;
+      <div class="tbl-wrap" style="max-height:520px"><table><thead><tr><th>Cửa hàng</th><th style="text-align:left">Mục tiêu hiệu quả nhất</th><th>Số mục tiêu</th><th>Tổng đơn QC</th><th>Tổng Reach</th><th style="text-align:left">Cảnh báo</th></tr></thead><tbody>${matrixRows||'<tr><td colspan=6 class=empty>-</td></tr>'}</tbody></table></div></div>`;
   const useSpend=spendOK,pieData=goals.map(g=>useSpend?cur[g].spend:cur[g].reach),tot=pieData.reduce((a,b)=>a+b,1);
   mkChart('goalPie',{type:'doughnut',data:{labels:goals.map(goalVN),datasets:[{data:pieData,backgroundColor:PALETTE,borderColor:css('--bg'),borderWidth:3}]},
     options:{cutout:'56%'}},{legendPos:'right',dlFmt:v=>(v/tot*100>=6?(v/tot*100).toFixed(0)+'%':''),dlAnchor:'center',dlAlign:'center',
@@ -1530,8 +1530,8 @@ function renderSummary(){
   const ins=[];
   const tgtPct=cur.rev_t?cur.rev/cur.rev_t*100:null;
   if(tgtPct!=null){
-    if(tgtPct>=100)ins.push({c:'good',i:'✓',t:'Đã vượt mục tiêu',d:`Doanh thu đạt <b>${fmtPct(tgtPct,0)}</b> mục tiêu tháng — vượt <b>${fmtVND(cur.rev-cur.rev_t)}</b>.`});
-    else if(elapsed&&tgtPct>=(elapsed/dim*100)*0.95)ins.push({c:'good',i:'↗',t:'Đang đúng tiến độ',d:`Đã đạt <b>${fmtPct(tgtPct,0)}</b> mục tiêu khi qua <b>${elapsed}/${dim}</b> ngày — đúng nhịp về đích.`});
+    if(tgtPct>=100)ins.push({c:'good',i:'✓',t:'Đã vượt mục tiêu',d:`Doanh thu đạt <b>${fmtPct(tgtPct,0)}</b> mục tiêu tháng - vượt <b>${fmtVND(cur.rev-cur.rev_t)}</b>.`});
+    else if(elapsed&&tgtPct>=(elapsed/dim*100)*0.95)ins.push({c:'good',i:'↗',t:'Đang đúng tiến độ',d:`Đã đạt <b>${fmtPct(tgtPct,0)}</b> mục tiêu khi qua <b>${elapsed}/${dim}</b> ngày - đúng nhịp về đích.`});
     else ins.push({c:'warn',i:'!',t:'Chưa đạt tiến độ mục tiêu',d:`Mới đạt <b>${fmtPct(tgtPct,0)}</b> mục tiêu sau <b>${elapsed}/${dim}</b> ngày, cần đẩy mạnh để bắt kịp.`});
   }
   const revMoM=pct(cur.rev,prev.rev);
@@ -1540,17 +1540,17 @@ function renderSummary(){
     const cplDelta=pct(cur.cpl,prev.cpl);
     if(cplDelta!=null)ins.push({c:cplDelta<=0?'good':'warn',i:'$',t:'Chi phí / Lead',d:`CP/Lead ${cplDelta<=0?'giảm':'tăng'} <b>${fmtN(Math.abs(cplDelta),1)}%</b> so với tháng trước (hiện <b>${fmtVND(cur.cpl)}</b>/lead).`});
   }
-  ins.push({c:'good',i:'★',t:'Cửa hàng Ngôi sao (B1)',d:`Có <b>${nB1}</b> cửa hàng đạt cả 3 chỉ số Traffic·CRV·ATV — nên nhân rộng mô hình.`});
-  if(nB8>0)ins.push({c:'bad',i:'⚠',t:'Cần can thiệp gấp (B8)',d:`<b>${nB8}</b> cửa hàng không đạt cả 3 chỉ số — cần rà soát toàn diện.`});
-  if(cur.ordShare<5)ins.push({c:'warn',i:'%',t:'Đóng góp đơn từ QC còn thấp',d:`Đơn từ QC chỉ chiếm <b>${fmtPct(cur.ordShare)}</b> tổng đơn — cơ hội tối ưu chiến dịch để tăng đóng góp.`});
+  ins.push({c:'good',i:'★',t:'Cửa hàng Ngôi sao (B1)',d:`Có <b>${nB1}</b> cửa hàng đạt cả 3 chỉ số Traffic·CRV·ATV - nên nhân rộng mô hình.`});
+  if(nB8>0)ins.push({c:'bad',i:'⚠',t:'Cần can thiệp gấp (B8)',d:`<b>${nB8}</b> cửa hàng không đạt cả 3 chỉ số - cần rà soát toàn diện.`});
+  if(cur.ordShare<5)ins.push({c:'warn',i:'%',t:'Đóng góp đơn từ QC còn thấp',d:`Đơn từ QC chỉ chiếm <b>${fmtPct(cur.ordShare)}</b> tổng đơn - cơ hội tối ưu chiến dịch để tăng đóng góp.`});
 
   // actions đề xuất
   const acts=[];
   if(nB8>0)acts.push(`Lập kế hoạch chi tiết cho <b>${nB8} cửa hàng nhóm B8</b>: gặp quản lý cửa hàng, phân tích nguyên nhân cụ thể.`);
   if(issues.length&&issues[0].d<-10)acts.push(`Xem xét nguyên nhân sụt giảm tại <b>${issues.slice(0,2).map(i=>i.branch).join(', ')}</b> (giảm ${fmtPct(Math.abs(issues[0].d),0)} MoM).`);
   if(wins.length)acts.push(`Phân tích & nhân rộng mô hình thành công của <b>${wins[0].branch}</b> (tăng ${fmtPct(wins[0].d,0)} MoM).`);
-  if(spendOK&&cur.cpRev>15)acts.push(`Tỷ lệ Chi phí QC/Doanh thu hiện <b>${fmtPct(cur.cpRev)}</b> — cao hơn ngưỡng lành mạnh, cần tối ưu chi tiêu QC.`);
-  acts.push(`Tập trung kéo Traffic ở các cửa hàng nhóm <b>B5/B6</b> (chốt tốt nhưng vắng khách) — biên lợi nhuận tăng nhanh nhất.`);
+  if(spendOK&&cur.cpRev>15)acts.push(`Tỷ lệ Chi phí QC/Doanh thu hiện <b>${fmtPct(cur.cpRev)}</b> - cao hơn ngưỡng lành mạnh, cần tối ưu chi tiêu QC.`);
+  acts.push(`Tập trung kéo Traffic ở các cửa hàng nhóm <b>B5/B6</b> (chốt tốt nhưng vắng khách) - biên lợi nhuận tăng nhanh nhất.`);
 
   document.getElementById('page-summary').innerHTML=`
     <div class="page-head"><div><h1>Tổng kết điều hành</h1>
@@ -1663,7 +1663,7 @@ function renderDeep(){
       <div class="ph-sub">Lịch nhiệt doanh thu · Mô hình theo ngày trong tuần · Phát hiện ngày bất thường · Kỳ <b>${ymLabel(ym)}</b></div></div></div>
 
     <div class="sec-h"><span class="sn">1</span>Lịch nhiệt doanh thu theo ngày</div>
-    <div class="card" style="margin-bottom:20px"><div class="card-sub">Mỗi ô là 1 ngày — màu càng sáng/cam → doanh thu càng cao. Phát hiện nhanh các ngày cao điểm &amp; ngày yếu trong tháng.</div>
+    <div class="card" style="margin-bottom:20px"><div class="card-sub">Mỗi ô là 1 ngày - màu càng sáng/cam → doanh thu càng cao. Phát hiện nhanh các ngày cao điểm &amp; ngày yếu trong tháng.</div>
       <div class="heatmap">
         <div class="hm-h"></div>
         ${dowLabels.map(d=>`<div class="hm-h">${d}</div>`).join('')}
@@ -1692,10 +1692,10 @@ function renderDeep(){
         </div></div></div>
 
     <div class="sec-h"><span class="sn">3</span>Ngày bất thường (z-score &ge; 1.2σ)</div>
-    <div class="card"><div class="card-sub">${anomalies.length?`Phát hiện <b style="color:var(--amber2)">${anomalies.length}</b> ngày có doanh thu lệch &ge;1.2 độ lệch chuẩn so với trung bình kỳ này — cần kiểm tra nguyên nhân (chương trình KM, sự kiện, lễ, v.v.)`:'Không có ngày nào bất thường — doanh thu khá ổn định.'}</div>
+    <div class="card"><div class="card-sub">${anomalies.length?`Phát hiện <b style="color:var(--amber2)">${anomalies.length}</b> ngày có doanh thu lệch &ge;1.2 độ lệch chuẩn so với trung bình kỳ này - cần kiểm tra nguyên nhân (chương trình KM, sự kiện, lễ, v.v.)`:'Không có ngày nào bất thường - doanh thu khá ổn định.'}</div>
       <div class="anomaly-list">${anomalies.length?anomalies.slice(0,10).map(a=>`<div class="anom-row ${a.dir}">
         <div class="ad">Ngày ${a.day} <span style="font-weight:500;color:var(--txt3);font-family:'Montserrat'">${a.dow}</span></div>
-        <div class="am">${a.dir==='up'?'Cao bất thường':'Thấp bất thường'} so với trung bình tháng (${fmtVND(mean)}/ngày) — z-score: <b>${a.z>0?'+':''}${fmtN(a.z,2)}σ</b></div>
+        <div class="am">${a.dir==='up'?'Cao bất thường':'Thấp bất thường'} so với trung bình tháng (${fmtVND(mean)}/ngày) - z-score: <b>${a.z>0?'+':''}${fmtN(a.z,2)}σ</b></div>
         <div class="av">${fmtVND(a.rev)}</div></div>`).join(''):'<div class="empty">Không có dữ liệu bất thường</div>'}</div></div>`;
 
   mkChart('dowRevChart',{type:'bar',data:{labels:dowLabels,datasets:[{label:'DT trung bình/ngày',data:dowRev,
@@ -1736,16 +1736,16 @@ function renderRegion(){
     <td>${r.p?deltaChip(r.rev,r.p.rev):'<span class="chip na">N/A</span>'}</td>
     <td>${fmtN(r.ord)}</td><td>${fmtN(r.traf)}</td><td>${fmtVND(r.atv)}</td>
     <td>${fmtPct(r.crv)}</td>
-    <td>${r.spend>0?fmtVND(r.spend):'—'}</td>
-    <td>${r.spend>0?r.roas.toFixed(2)+'x':'—'}</td>
+    <td>${r.spend>0?fmtVND(r.spend):'-'}</td>
+    <td>${r.spend>0?r.roas.toFixed(2)+'x':'-'}</td>
     <td>${fmtPct(r.ordShare)}</td></tr>`).join('');
 
   const typRows=typData.map(r=>`<tr>
     <td><b>${r.k}</b><br><span style="font-size:10px;color:var(--txt3)">${r.nBranch} cửa hàng</span></td>
     <td>${fmtVND(r.rev)}</td><td>${r.p?deltaChip(r.rev,r.p.rev):'<span class="chip na">N/A</span>'}</td>
     <td>${fmtN(r.ord)}</td><td>${fmtVND(r.atv)}</td><td>${fmtN(r.upt,2)}</td>
-    <td>${fmtPct(r.crv)}</td><td>${r.spend>0?fmtVND(r.cpl):'—'}</td>
-    <td>${r.spend>0?fmtVND(r.cpo):'—'}</td><td>${r.spend>0?r.roas.toFixed(2)+'x':'—'}</td></tr>`).join('');
+    <td>${fmtPct(r.crv)}</td><td>${r.spend>0?fmtVND(r.cpl):'-'}</td>
+    <td>${r.spend>0?fmtVND(r.cpo):'-'}</td><td>${r.spend>0?r.roas.toFixed(2)+'x':'-'}</td></tr>`).join('');
 
   document.getElementById('page-region').innerHTML=`
     <div class="page-head"><div><h1>Vùng &amp; Loại cửa hàng</h1>
@@ -1804,7 +1804,7 @@ function renderFunnel(){
     {n:'Reach',v:cur.reach,pv:prev.reach,c:TEAL,desc:'Số người tiếp cận quảng cáo'},
     {n:'Lượt hiển thị',v:cur.impr,pv:prev.impr,c:INFO,desc:'Tổng số lần hiển thị quảng cáo'},
     {n:'Tương tác',v:cur.peng,pv:prev.peng,c:VIOLET,desc:'Like, chia sẻ, click, comment...'},
-    {n:'Lead (BL+TN)',v:cur.leads,pv:prev.leads,c:'#d98a4f',desc:'Bình luận + Tin nhắn — khách quan tâm'},
+    {n:'Lead (BL+TN)',v:cur.leads,pv:prev.leads,c:'#d98a4f',desc:'Bình luận + Tin nhắn - khách quan tâm'},
     {n:'Đơn từ QC',v:cur.offpur,pv:prev.offpur,c:AMBER,desc:'Số đơn offline phát sinh từ chiến dịch QC'},
     {n:'Doanh thu QC',v:cur.offrev,pv:prev.offrev,c:GOOD,desc:'Tổng giá trị đơn từ QC'},
   ];
@@ -1817,7 +1817,7 @@ function renderFunnel(){
     return `<div class="fn-step" style="background:linear-gradient(90deg,${s.c}d9,${s.c}99);width:${w}%;min-width:280px">
       <div><div class="fl">${s.n}</div><div class="fv">${isVnd?fmtVND(s.v):fmtN(s.v)}</div>
         <div style="font-size:10.5px;opacity:.92;margin-top:2px;font-weight:500">${s.desc}</div></div>
-      <div class="fr"><div class="frt">MoM</div><div class="frv">${momDelta!=null?(momDelta>=0?'+':'')+fmtN(momDelta,1)+'%':'—'}</div></div>
+      <div class="fr"><div class="frt">MoM</div><div class="frv">${momDelta!=null?(momDelta>=0?'+':'')+fmtN(momDelta,1)+'%':'-'}</div></div>
     </div>`+(i<stages.length-1?(()=>{
       const nx=stages[i+1].v;
       // Bước cuối Đơn → DT thì hiện ATV thay vì tỷ lệ %
@@ -1851,7 +1851,7 @@ function renderFunnel(){
     <div class="page-head"><div><h1>Phễu chuyển đổi quảng cáo</h1>
       <div class="ph-sub">Hành trình từ Reach → Doanh thu · 6 giai đoạn · Kỳ <b>${ymLabel(ym)}</b> · MoM vs ${ymLabel(pm)}</div></div></div>
 
-    ${!spendOK?'<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg><div>Kỳ này chưa có chi phí — chỉ phân tích phễu chuyển đổi tự nhiên.</div></div>':''}
+    ${!spendOK?'<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg><div>Kỳ này chưa có chi phí - chỉ phân tích phễu chuyển đổi tự nhiên.</div></div>':''}
 
     <div class="sec-h"><span class="sn">1</span>Phễu chuyển đổi 6 bước</div>
     <div class="card" style="margin-bottom:20px"><div class="card-sub">Mỗi thanh = 1 giai đoạn, độ rộng tỉ lệ với số lượng. Các tỷ lệ chuyển đổi giữa các bước cho thấy điểm rớt khách.</div>
@@ -1861,8 +1861,8 @@ function renderFunnel(){
         ${worstConv.from==='Reach'?'→ Quảng cáo chưa thu hút, cần cải thiện sáng tạo (creative).':''}
         ${worstConv.from==='Lượt hiển thị'?'→ Tần suất hiển thị cao nhưng ít tương tác → cải thiện CTA & thông điệp.':''}
         ${worstConv.from==='Tương tác'?'→ Khách tương tác nhưng chưa để lại lead → cần thêm form/landing rõ ràng.':''}
-        ${worstConv.from==='Lead (BL+TN)'?'→ Lead chưa được tư vấn chốt đơn hiệu quả — cần đào tạo đội tư vấn.':''}
-        ${worstConv.from==='Đơn từ QC'?'→ Khách mua nhưng giá trị đơn thấp — cần upsell, bán kèm.':''}
+        ${worstConv.from==='Lead (BL+TN)'?'→ Lead chưa được tư vấn chốt đơn hiệu quả - cần đào tạo đội tư vấn.':''}
+        ${worstConv.from==='Đơn từ QC'?'→ Khách mua nhưng giá trị đơn thấp - cần upsell, bán kèm.':''}
       </div>`:''}</div>
 
     <div class="kpi-grid">
@@ -1882,10 +1882,10 @@ function renderFunnel(){
     <div class="row2">
       <div class="card"><div class="card-title" style="color:var(--good)">2 · Top 5 chuyển Reach → Lead tốt nhất</div>
         <div class="tbl-wrap"><table><thead><tr><th>Cửa hàng</th><th>Reach</th><th>Lead</th><th>Tỷ lệ</th></tr></thead><tbody>
-        ${topR2L.map(b=>`<tr><td><b>${b.branch}</b></td><td>${fmtVND(b.reach)}</td><td>${fmtN(b.leads)}</td><td class="pos">${fmtPct(b.r2lead,3)}</td></tr>`).join('')||'<tr><td colspan=4 class=empty>—</td></tr>'}</tbody></table></div></div>
+        ${topR2L.map(b=>`<tr><td><b>${b.branch}</b></td><td>${fmtVND(b.reach)}</td><td>${fmtN(b.leads)}</td><td class="pos">${fmtPct(b.r2lead,3)}</td></tr>`).join('')||'<tr><td colspan=4 class=empty>-</td></tr>'}</tbody></table></div></div>
       <div class="card"><div class="card-title" style="color:var(--good)">Top 5 chuyển Lead → Đơn QC tốt nhất</div>
         <div class="tbl-wrap"><table><thead><tr><th>Cửa hàng</th><th>Lead</th><th>Đơn QC</th><th>Tỷ lệ</th></tr></thead><tbody>
-        ${topL2O.map(b=>`<tr><td><b>${b.branch}</b></td><td>${fmtN(b.leads)}</td><td>${fmtN(b.offpur)}</td><td class="pos">${fmtPct(b.lead2ord,1)}</td></tr>`).join('')||'<tr><td colspan=4 class=empty>—</td></tr>'}</tbody></table></div></div></div>`;
+        ${topL2O.map(b=>`<tr><td><b>${b.branch}</b></td><td>${fmtN(b.leads)}</td><td>${fmtN(b.offpur)}</td><td class="pos">${fmtPct(b.lead2ord,1)}</td></tr>`).join('')||'<tr><td colspan=4 class=empty>-</td></tr>'}</tbody></table></div></div></div>`;
 }
 </script>
 
