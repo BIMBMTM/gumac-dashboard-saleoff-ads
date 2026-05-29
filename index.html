@@ -408,7 +408,7 @@ tr.totalrow td{background:var(--amberg);font-weight:800;border-top:2px solid var
 /* ============ AUTH ============ */
 const PWD="GUMACkdads@#$%^^$@2026";
 const CSV_BIZ="https://docs.google.com/spreadsheets/d/e/2PACX-1vT5MDcm_erqg5Rne8BXEoQtN_eJPpcK6iI9GcT8MvTkp7QH8eOOmI3FtMrJ3c20kupcAMVik6jEAw-H/pub?gid=0&single=true&output=csv";
-const CSV_ADS="https://docs.google.com/spreadsheets/d/e/2PACX-1vT-oMUkiX23RyQSZPfbQuB0KZfizfPd7Bcv5auKfLdQU0AMZoUk1anciN9GstetMKpNmfEHrxfnZKV/pub?gid=1904707154&single=true&output=csv";
+const CSV_ADS="https://docs.google.com/spreadsheets/d/e/2PACX-1vT-oMUkiX23RyQSZPfbQuB0KZzfizfPd7Bcv5auKfLdQU0AMZoUk1anciN9GstetMKpNmfEHrxfnZKV/pub?gid=1904707154&single=true&output=csv";
 function togglePwd(){const i=document.getElementById('pwd');i.type=i.type==='password'?'text':'password';}
 function checkPwd(){
   const v=document.getElementById('pwd').value;
@@ -648,25 +648,74 @@ function setStep(msg,pct){document.getElementById('loaderStep').textContent=msg|
 async function startLoad(){
   document.getElementById('loader').style.display='flex';
   const isFile=location.protocol==='file:';
-  setStep(isFile?'Đang tải dữ liệu (chế độ file://, dùng JSONP)...':'Đang kết nối Google Sheet & tải dữ liệu mới nhất...',10);
+  setStep(isFile?'Mở qua file:// — đang thử CORS proxy để load dữ liệu...':'Đang kết nối Google Sheet & tải dữ liệu...',10);
+  const log=[];
   try{
-    let biz,ads;
-    if(isFile){
-      // file:// → fetch HTTPS bị chặn → dùng JSONP via script tag (vượt CORS)
-      [biz,ads]=await Promise.all([fetchViaScript(CSV_BIZ),fetchViaScript(CSV_ADS)]);
-    }else{
-      [biz,ads]=await Promise.all([fetchCSV(CSV_BIZ),fetchCSV(CSV_ADS)]);
-    }
+    const [biz,ads]=await Promise.all([
+      loadCSVResilient(CSV_BIZ,'BIZ',log),
+      loadCSVResilient(CSV_ADS,'ADS',log)
+    ]);
     setStep('Đã tải xong, đang xử lý & ghép dữ liệu...',55);
     _bizText=biz;_adsText=ads;
+    console.log('[CSV LOAD]',log.join('\n'));
     await finishProcess(biz,ads);
   }catch(e){
     console.warn('Auto-fetch CSV failed:',e);
+    console.warn('Load log:\n'+log.join('\n'));
     document.getElementById('loader').style.display='none';
-    document.getElementById('srcMsg').innerHTML='Không thể tự động tải dữ liệu từ Google Sheet.<br><span style="color:var(--bad);font-size:11px">Lý do: '+(e.message||'không xác định')+'</span><br>Vui lòng tải lên 2 file CSV thủ công để tiếp tục.';
+    document.getElementById('srcMsg').innerHTML='Không thể tự động tải dữ liệu từ Google Sheet.<br><span style="color:var(--bad);font-size:11px">Lý do: '+(e.message||'không xác định')+'</span><br>Vui lòng tải lên 2 file CSV thủ công để tiếp tục. (Mở Console — F12 — để xem chi tiết)';
     document.getElementById('srcScreen').style.display='flex';
   }
 }
+
+// Thử nhiều cách tải song song, dùng cái nào về trước thành công
+async function loadCSVResilient(url,label,log){
+  const attempts=[];
+  // 1) Fetch trực tiếp (chỉ hoạt động khi không phải file://)
+  if(location.protocol!=='file:'){
+    attempts.push(tryFetch(url,'direct',label,log));
+  }
+  // 2) Qua các CORS proxy (hoạt động cả file:// và https://)
+  const proxies=[
+    {n:'corsproxy.io',u:'https://corsproxy.io/?'+encodeURIComponent(url)},
+    {n:'allorigins.win',u:'https://api.allorigins.win/raw?url='+encodeURIComponent(url)},
+    {n:'codetabs.com',u:'https://api.codetabs.com/v1/proxy?quest='+encodeURIComponent(url)},
+    {n:'thingproxy',u:'https://thingproxy.freeboard.io/fetch/'+url}
+  ];
+  proxies.forEach(p=>attempts.push(tryFetch(p.u,p.n,label,log)));
+
+  // Dùng Promise.any: trả về kết quả đầu tiên thành công
+  try{
+    return await Promise.any(attempts);
+  }catch(e){
+    // Tất cả đều thất bại
+    throw new Error(label+': tất cả 5 phương thức đều không hoạt động. Xem Console.');
+  }
+}
+
+async function tryFetch(url,method,label,log){
+  const ctl=new AbortController();const tmr=setTimeout(()=>ctl.abort(),25000);
+  const t0=Date.now();
+  try{
+    const res=await fetch(url,{redirect:'follow',signal:ctl.signal});
+    clearTimeout(tmr);
+    if(!res.ok){log.push(`[${label}] ${method}: HTTP ${res.status} (${Date.now()-t0}ms)`);throw new Error('HTTP '+res.status);}
+    const t=await res.text();
+    if(t.trim().toLowerCase().startsWith('<!doctype')||t.trim().startsWith('<html')){
+      log.push(`[${label}] ${method}: nhận HTML thay vì CSV — kiểm tra quyền chia sẻ Sheet`);
+      throw new Error('HTML thay vì CSV');}
+    if(t.length<200){log.push(`[${label}] ${method}: phản hồi quá ngắn (${t.length} bytes)`);throw new Error('Quá ngắn');}
+    log.push(`[${label}] ${method}: OK (${t.length} bytes, ${Date.now()-t0}ms) ✓`);
+    return t;
+  }catch(e){
+    clearTimeout(tmr);
+    if(e.name==='AbortError')log.push(`[${label}] ${method}: timeout 25s`);
+    else if(!log.some(l=>l.includes(`[${label}] ${method}`)))log.push(`[${label}] ${method}: ${e.message||'lỗi'}`);
+    throw e;
+  }
+}
+
+// Giữ fetchCSV legacy cho tương thích (không còn dùng trong startLoad)
 async function fetchCSV(url){
   const ctl=new AbortController();const tmr=setTimeout(()=>ctl.abort(),20000);
   try{
@@ -674,48 +723,11 @@ async function fetchCSV(url){
     clearTimeout(tmr);
     if(!res.ok)throw new Error('HTTP '+res.status);
     const t=await res.text();
-    if(t.trim().toLowerCase().startsWith('<!doctype')||t.trim().startsWith('<html'))throw new Error('Nguồn trả về HTML thay vì CSV (kiểm tra quyền chia sẻ Sheet)');
+    if(t.trim().toLowerCase().startsWith('<!doctype')||t.trim().startsWith('<html'))throw new Error('Nguồn trả về HTML thay vì CSV');
     return t;
   }catch(e){clearTimeout(tmr);if(e.name==='AbortError')throw new Error('Quá thời gian chờ (20s)');throw e;}
 }
-// Kỹ thuật JSONP: dùng <script src> để vượt qua chặn fetch của file://
-// Google Sheets gviz endpoint trả về dạng "/*O_o*/google.visualization.Query.setResponse({...})"
-// Chuyển URL pub?output=csv sang dạng gviz/tq?tqx=out:json bằng cách trích sheet ID
-async function fetchViaScript(pubUrl){
-  // Trích sheet 2PACX-... và gid từ URL pub
-  const m=pubUrl.match(/\/d\/e\/(2PACX-[\w-]+)/);
-  const gidM=pubUrl.match(/gid=(\d+)/);
-  if(!m)throw new Error('URL không hợp lệ');
-  const pubKey=m[1],gid=gidM?gidM[1]:'0';
-  // gviz endpoint cho published-to-web sheets: /pub?gid=X&single=true&output=tsv
-  // → dùng output=tsv vẫn bị CORS, không hỗ trợ JSONP
-  // → giải pháp: thêm gviz callback qua URL gviz/tq dùng key thực (không phải pubKey 2PACX-)
-  // Pub URLs với key 2PACX- KHÔNG hỗ trợ gviz/tq callback trực tiếp
-  // → fallback: nạp pub URL output=html qua iframe rồi đọc text (cũng bị chặn bởi cross-origin)
-  // Cuối cùng: thử dùng AllOrigins / corsproxy.io (proxy công cộng) qua fetch
-  // Vì file:// vẫn cho phép fetch nếu Content-Type cho phép, ta thử proxy:
-  const proxies=[
-    'https://corsproxy.io/?',
-    'https://api.allorigins.win/raw?url=',
-    'https://api.codetabs.com/v1/proxy?quest='
-  ];
-  let lastErr;
-  for(const px of proxies){
-    try{
-      const fullUrl=px+encodeURIComponent(pubUrl);
-      const ctl=new AbortController();const tmr=setTimeout(()=>ctl.abort(),20000);
-      const res=await fetch(fullUrl,{signal:ctl.signal});
-      clearTimeout(tmr);
-      if(!res.ok){lastErr=new Error('Proxy HTTP '+res.status);continue;}
-      const t=await res.text();
-      if(t.trim().toLowerCase().startsWith('<!doctype')||t.trim().startsWith('<html')){
-        lastErr=new Error('Proxy trả về HTML');continue;}
-      if(t.length<100){lastErr=new Error('Phản hồi quá ngắn');continue;}
-      return t;
-    }catch(e){lastErr=e;}
-  }
-  throw new Error('Không proxy nào hoạt động: '+(lastErr&&lastErr.message||'unknown'));
-}
+async function fetchViaScript(pubUrl){return loadCSVResilient(pubUrl,'legacy',[]);}
 async function finishProcess(biz,ads){
   await new Promise(r=>setTimeout(r,40));
   setStep('Đang ghép theo Ngày + Cửa hàng & khớp tên chi nhánh...',75);
