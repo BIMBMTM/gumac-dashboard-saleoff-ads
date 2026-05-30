@@ -1254,6 +1254,36 @@ function renderStores(){
 
   const stars=cls.filter(c=>c.group.tag==='good'),warns=cls.filter(c=>c.group.tag==='warn'),bad=cls.filter(c=>c.group.tag==='bad');
 
+  // ===== CHỈ SỐ CHUẨN NGÀNH BÁN LẺ =====
+  const totRevAll=ba.reduce((s,b)=>s+b.rev,0)||1;
+  // ABC / Pareto: sắp xếp giảm dần theo doanh thu, tính luỹ kế
+  const abcSorted=[...ba].sort((a,b)=>b.rev-a.rev);
+  let cum=0;const abc=abcSorted.map(b=>{cum+=b.rev;const cumPct=cum/totRevAll*100;
+    let cls='C';if(cumPct<=80)cls='A';else if(cumPct<=95)cls='B';
+    return {...b,cumPct,abc:cls,revShare:b.rev/totRevAll*100};});
+  const nA=abc.filter(x=>x.abc==='A').length,nB=abc.filter(x=>x.abc==='B').length,nC=abc.filter(x=>x.abc==='C').length;
+  const revA=abc.filter(x=>x.abc==='A').reduce((s,x)=>s+x.rev,0);
+  // chỉ số nâng cao mỗi CH: sales/traffic (DT mỗi lượt khách), MoM rev
+  const adv=abc.map(b=>{const p=prevMap[b.branch];
+    return {...b,salesPerTraf:b.traf?b.rev/b.traf:0,momRev:p&&p.rev?(b.rev-p.rev)/p.rev*100:null,
+      prodPerOrd:b.ord?b.prod/b.ord:0};});
+  // trung vị sales/traffic để so sánh
+  const sptArr=adv.filter(b=>b.salesPerTraf>0).map(b=>b.salesPerTraf).sort((a,b)=>a-b);
+  const sptMed=sptArr.length?sptArr[Math.floor(sptArr.length/2)]:0;
+  // bảng chỉ số nâng cao (top theo doanh thu)
+  const advRows=adv.map(b=>{
+    const sptCol=b.salesPerTraf>=sptMed?'var(--good)':'var(--txt)';
+    const abcCol=b.abc==='A'?GOOD:b.abc==='B'?AMBER:'var(--txt3)';
+    return `<tr>
+      <td><b>${b.branch}</b><br><span style="font-size:10px;color:var(--txt3)">${b.region} · ${b.stype}</span></td>
+      <td style="text-align:center"><span class="tag" style="background:${abcCol}22;color:${abcCol};font-weight:800">${b.abc}</span></td>
+      <td>${fmtVND(b.rev)}<br><span style="font-size:10px;color:var(--txt3)">${fmtPct(b.revShare,1)} tổng</span></td>
+      <td>${fmtPct(b.cumPct,0)}</td>
+      <td style="color:${sptCol};font-weight:600">${fmtVND(b.salesPerTraf)}</td>
+      <td>${fmtVND(b.atv)}</td><td>${fmtN(b.prodPerOrd,2)}</td>
+      <td>${fmtPct(b.crv)}</td>
+      <td>${b.momRev==null?'<span class="chip na">N/A</span>':deltaChip(b.rev,prevMap[b.branch].rev)}</td></tr>`;}).join('');
+
   document.getElementById('page-stores').innerHTML=`
     <div class="page-head"><div><h1>Hiệu suất từng cửa hàng</h1>
       <div class="ph-sub">Phân tích & phân loại ${cls.length} cửa hàng · Kỳ <b>${ymLabel(ym)}</b></div></div></div>
@@ -1271,13 +1301,41 @@ function renderStores(){
     <div class="fc-classify" style="margin-bottom:24px">${groupCards}</div>
     <div class="card" style="margin-bottom:18px"><div class="card-title">Chi tiết chỉ số từng cửa hàng</div>
       <div class="tbl-wrap" style="max-height:540px"><table><thead><tr><th>Cửa hàng</th><th>Nhóm</th><th>Doanh thu</th><th>%MT</th><th>Traffic</th><th>CRV</th><th>ATV</th><th>CP/Lead</th><th>Đơn Ads%</th></tr></thead><tbody>${detail}</tbody></table></div></div>
-    <div class="sec-h"><span class="sn">3</span>Tổng quan phân loại & điểm cần cải thiện</div>
+    <div class="sec-h"><span class="sn">3</span>Chỉ số chuẩn ngành bán lẻ &amp; Phân tích ABC (Pareto)</div>
+    <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+      <div><b>Phân tích ABC (quy tắc Pareto 80/20):</b> Nhóm <b style="color:${GOOD}">A</b> = các cửa hàng tạo 80% doanh thu đầu tiên · <b style="color:${AMBER}">B</b> = 80–95% · <b style="color:var(--txt3)">C</b> = 5% cuối. <b>Doanh thu/Lượt khách</b> (Sales per Traffic) đo năng suất mỗi khách ghé — chỉ số lõi của bán lẻ; <b>SP/Đơn</b> = số sản phẩm trung bình mỗi đơn (UPT).</div></div>
+    <div class="badge-grid" style="margin-bottom:16px">
+      <div class="bcard"><div class="bn">Nhóm A — Trọng yếu</div><div class="bv" style="color:${GOOD}">${nA}</div><div class="bd">${fmtPct(nA/ba.length*100,0)}% số CH · tạo ${fmtPct(revA/totRevAll*100,0)}% doanh thu</div><div class="bbar" style="background:${GOOD};width:100%"></div></div>
+      <div class="bcard"><div class="bn">Nhóm B — Trung bình</div><div class="bv" style="color:${AMBER}">${nB}</div><div class="bd">Đóng góp 80–95% doanh thu</div><div class="bbar" style="background:${AMBER};width:100%"></div></div>
+      <div class="bcard"><div class="bn">Nhóm C — Đuôi dài</div><div class="bv" style="color:var(--txt3)">${nC}</div><div class="bd">5% doanh thu cuối · cân nhắc tối ưu/đóng</div><div class="bbar" style="background:var(--txt3);width:100%"></div></div>
+      <div class="bcard"><div class="bn">DT/Lượt khách (trung vị)</div><div class="bv" style="color:${VIOLET};font-size:22px">${fmtVND(sptMed)}</div><div class="bd">Năng suất mỗi khách ghé thăm</div><div class="bbar" style="background:${VIOLET};width:100%"></div></div>
+    </div>
+    <div class="row2" style="margin-bottom:16px">
+      <div class="card"><div class="card-title">Đường cong Pareto — tỷ trọng doanh thu luỹ kế</div><div class="chart-box sm"><canvas id="paretoChart"></canvas></div></div>
+      <div class="card"><div class="card-title">Phân bổ cửa hàng theo nhóm ABC</div><div class="chart-box sm"><canvas id="abcPie"></canvas></div></div></div>
+    <div class="card" style="margin-bottom:24px"><div class="card-title">Bảng chỉ số chuẩn ngành từng cửa hàng</div>
+      <div class="card-sub">Sắp xếp theo doanh thu giảm dần. DT/Lượt khách màu xanh = trên trung vị (năng suất tốt).</div>
+      <div class="tbl-wrap" style="max-height:480px"><table><thead><tr><th>Cửa hàng</th><th>ABC</th><th>Doanh thu</th><th>Luỹ kế%</th><th>DT/Lượt khách</th><th>ATV</th><th>SP/Đơn</th><th>CRV</th><th>MoM</th></tr></thead><tbody>${advRows}</tbody></table></div></div>
+
+    <div class="sec-h"><span class="sn">4</span>Tổng quan phân loại &amp; điểm cần cải thiện</div>
     <div class="badge-grid">
       <div class="bcard"><div class="bn">Nhóm xuất sắc (B1)</div><div class="bv" style="color:${GOOD}">${stars.length}</div><div class="bd">Đạt cả 3 chỉ số</div><div class="bbar" style="background:${GOOD};width:100%"></div></div>
       <div class="bcard"><div class="bn">Cần tối ưu</div><div class="bv" style="color:${AMBER}">${warns.length}</div><div class="bd">Đạt 1–2/3 chỉ số</div><div class="bbar" style="background:${AMBER};width:100%"></div></div>
       <div class="bcard"><div class="bn">Cần can thiệp</div><div class="bv" style="color:${BAD}">${bad.length}</div><div class="bd">Yếu nhiều chỉ số</div><div class="bbar" style="background:${BAD};width:100%"></div></div>
     </div>
     <div class="card"><div style="font-size:12.5px;color:var(--txt2);line-height:1.7">${improveText(cls)}</div></div>`;
+
+  // Biểu đồ Pareto: bar doanh thu + line luỹ kế %
+  mkChart('paretoChart',{data:{labels:abc.map((_,i)=>i+1),datasets:[
+    {type:'bar',label:'Doanh thu',data:abc.map(b=>b.rev),backgroundColor:abc.map(b=>b.abc==='A'?GOOD+'cc':b.abc==='B'?AMBER+'cc':'rgba(148,160,184,.5)'),borderRadius:4,maxBarThickness:18,yAxisID:'y',datalabels:{display:false}},
+    {type:'line',label:'Luỹ kế %',data:abc.map(b=>b.cumPct),borderColor:VIOLET,borderWidth:2.5,pointRadius:0,tension:.2,yAxisID:'y1',datalabels:{display:false}}]},
+    options:{scales:{x:{ticks:{display:false},grid:{display:false}},y:{position:'left',ticks:{callback:v=>fmtVND(v)},grace:'10%'},y1:{position:'right',min:0,max:100,grid:{display:false},ticks:{callback:v=>v+'%'}}}}},
+    {tooltip:{title:items=>'CH #'+items[0].label+': '+abc[items[0].dataIndex].branch,label:c=>c.dataset.label+': '+(c.dataset.label==='Luỹ kế %'?fmtN(c.raw,1)+'%':fmtVND(c.raw))}});
+
+  const abcCnt=[nA,nB,nC];
+  mkChart('abcPie',{type:'doughnut',data:{labels:['A · Trọng yếu','B · Trung bình','C · Đuôi dài'],datasets:[{data:abcCnt,backgroundColor:[GOOD,AMBER,'rgba(148,160,184,.6)'],borderColor:css('--bg'),borderWidth:3}]},
+    options:{cutout:'58%'}},{legendPos:'right',dlFmt:v=>v||'',dlAnchor:'center',dlAlign:'center',dlColor:'#fff',
+    tooltip:{label:c=>c.label+': '+c.raw+' cửa hàng'}});
 }
 function improveText(cl){
   const lowTraf=cl.filter(c=>c.traf_t&&!c.trafOK).length,lowCRV=cl.filter(c=>c.crvT&&!c.crvOK).length,lowATV=cl.filter(c=>c.atvT&&!c.atvOK).length;
@@ -1436,24 +1494,28 @@ const AD_METRICS=[['reach','Reach',TEAL],['impr','Hiển thị',INFO],['peng','T
 const REG_METRICS=[['leads','Lead',VIOLET],['offpur','Đơn QC',GOOD],['reach','Reach',TEAL],['spend','Chi phí',BAD],['ordShare','Đơn Ads%',AMBER],['cpl','CP/Lead',BAD]];
 
 function renderAds(){
-  const ym=FS.month,pm=ymPrev(ym);
-  const cur=agg(monthRows(ym)),prev=agg(monthRows(pm)),spendOK=hasSpend(ym);
+  const ym=FS.month,pm=ymPrev(ym),py=ymPrevYear(ym);
+  const cur=agg(monthRows(ym)),prev=agg(monthRows(pm)),prevY=agg(monthRows(py)),spendOK=hasSpend(ym);
   const k=[
-    {l:'Reach',v:fmtVND(cur.reach),d:[cur.reach,prev.reach]},
-    {l:'Lượt hiển thị',v:fmtVND(cur.impr),d:[cur.impr,prev.impr]},
-    {l:'Tương tác',v:fmtVND(cur.peng),d:[cur.peng,prev.peng]},
-    {l:'Lead (BL+TN)',v:fmtN(cur.leads),d:[cur.leads,prev.leads]},
-    {l:'Tổng chi phí QC',v:spendOK?fmtVND(cur.spend):'N/A',na:!spendOK,d:[cur.spend,prev.spend]},
-    {l:'CPM',v:spendOK?fmtVND(cur.cpm):'N/A',na:!spendOK,d:[cur.cpm,prev.cpm],inv:true},
-    {l:'Chi phí / Lead',v:spendOK?fmtVND(cur.cpl):'N/A',na:!spendOK,d:[cur.cpl,prev.cpl],inv:true},
-    {l:'Chi phí / Đơn Ads',v:spendOK?fmtVND(cur.cpo):'N/A',na:!spendOK,d:[cur.cpo,prev.cpo],inv:true},
-    {l:'Đơn từ QC',v:fmtN(cur.offpur),d:[cur.offpur,prev.offpur]},
-    {l:'Doanh thu từ QC',v:fmtVND(cur.offrev),d:[cur.offrev,prev.offrev]},
-    {l:'Tỷ trọng đơn Ads/Tổng',v:fmtPct(cur.ordShare),d:[cur.ordShare,prev.ordShare]},
-    {l:'ROAS offline',v:spendOK?cur.roas.toFixed(2)+'x':'N/A',na:!spendOK,d:[cur.roas,prev.roas]},
+    {l:'Reach',v:fmtVND(cur.reach),d:[cur.reach,prev.reach],y:[cur.reach,prevY.reach]},
+    {l:'Lượt hiển thị',v:fmtVND(cur.impr),d:[cur.impr,prev.impr],y:[cur.impr,prevY.impr]},
+    {l:'Tương tác',v:fmtVND(cur.peng),d:[cur.peng,prev.peng],y:[cur.peng,prevY.peng]},
+    {l:'Lead (BL+TN)',v:fmtN(cur.leads),d:[cur.leads,prev.leads],y:[cur.leads,prevY.leads]},
+    {l:'Tổng chi phí QC',v:spendOK?fmtVND(cur.spend):'N/A',na:!spendOK,d:[cur.spend,prev.spend],y:[cur.spend,prevY.spend]},
+    {l:'CPM',v:spendOK?fmtVND(cur.cpm):'N/A',na:!spendOK,d:[cur.cpm,prev.cpm],y:[cur.cpm,prevY.cpm],inv:true},
+    {l:'Chi phí / Lead',v:spendOK?fmtVND(cur.cpl):'N/A',na:!spendOK,d:[cur.cpl,prev.cpl],y:[cur.cpl,prevY.cpl],inv:true},
+    {l:'Chi phí / Đơn Ads',v:spendOK?fmtVND(cur.cpo):'N/A',na:!spendOK,d:[cur.cpo,prev.cpo],y:[cur.cpo,prevY.cpo],inv:true},
+    {l:'Đơn từ QC',v:fmtN(cur.offpur),d:[cur.offpur,prev.offpur],y:[cur.offpur,prevY.offpur]},
+    {l:'Doanh thu từ QC',v:fmtVND(cur.offrev),d:[cur.offrev,prev.offrev],y:[cur.offrev,prevY.offrev]},
+    {l:'Tỷ trọng đơn Ads/Tổng',v:fmtPct(cur.ordShare),d:[cur.ordShare,prev.ordShare],y:[cur.ordShare,prevY.ordShare]},
+    {l:'ROAS offline',v:spendOK?cur.roas.toFixed(2)+'x':'N/A',na:!spendOK,d:[cur.roas,prev.roas],y:[cur.roas,prevY.roas]},
   ];
-  const kpiHTML=k.map(x=>`<div class="kpi"><div class="kpi-label">${x.l}</div><div class="kpi-val">${x.v}</div>
-    <div class="kpi-foot">${x.na?'<span class="chip-lbl">Chưa có dữ liệu chi phí</span>':`<span class="chip-lbl">MoM</span>${deltaChip(x.d[0],x.d[1],x.inv)}`}</div></div>`).join('');
+  const kpiHTML=k.map(x=>{let foot='';
+    if(x.na)foot='<span class="chip-lbl">Chưa có dữ liệu chi phí</span>';
+    else{foot=`<span class="chip-lbl">MoM</span>${deltaChip(x.d[0],x.d[1],x.inv)}`;
+      if(x.y)foot+=`<span class="chip-lbl">YoY</span>${deltaChip(x.y[0],x.y[1],x.inv)}`;}
+    return `<div class="kpi"><div class="kpi-label">${x.l}</div><div class="kpi-val">${x.v}</div>
+    <div class="kpi-foot">${foot}</div></div>`;}).join('');
 
   const wk=weekAgg(ym);
   const wkRows=wk.map(w=>`<tr><td><b>Tuần ${w.w}</b></td><td>${fmtVND(w.reach)}</td><td>${fmtVND(w.impr)}</td><td>${fmtN(w.leads)}</td>
@@ -1467,7 +1529,7 @@ function renderAds(){
   const lowAd=[...ba].filter(b=>b.reach>0).sort((a,b)=>a.ordShare-b.ordShare).slice(0,5);
 
   document.getElementById('page-ads').innerHTML=`
-    <div class="page-head"><div><h1>Quảng cáo tổng quan</h1><div class="ph-sub">Hiệu suất quảng cáo chi tiết · Kỳ <b>${ymLabel(ym)}</b> · MoM vs ${ymLabel(pm)}</div></div></div>
+    <div class="page-head"><div><h1>Quảng cáo tổng quan</h1><div class="ph-sub">Hiệu suất quảng cáo chi tiết · Kỳ <b>${ymLabel(ym)}</b> · MoM vs ${ymLabel(pm)} · YoY vs ${ymLabel(py)}</div></div></div>
     ${!spendOK?`<div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg><div>Kỳ <b>${ymLabel(ym)}</b> chưa có chi phí QC — các chỉ số CPM, CP/Lead, CP/đơn hiển thị N/A.</div></div>`:''}
     <div class="sec-h"><span class="sn">1</span>Tổng quan chỉ số quảng cáo</div>
     <div class="kpi-grid">${kpiHTML}</div>
@@ -1495,13 +1557,17 @@ function buildAdDayCtrl(ym){document.getElementById('adDayCtrl').innerHTML=AD_ME
   for(let d=1;d<=dim;d++){const ds=ym+'-'+String(d).padStart(2,'0');const rr=DAILY.filter(r=>r.date===ds&&passFilter(r));labels.push(d);data.push(rr.length?agg(rr)[adDaySel]:0);}
   mkChart('adDayChart',{type:'line',data:{labels,datasets:[{label:meta[1]+' theo ngày',data,borderColor:meta[2],backgroundColor:c=>grad(c.chart.ctx,meta[2]+'30',meta[2]+'02'),fill:true,tension:.35,borderWidth:2.5,pointRadius:0}]},
     options:{scales:{y:{ticks:{callback:v=>fmtVND(v)},grace:'15%'}}}},{dlSize:dim>20?8:9,dlAnchor:'end',dlAlign:'top',dlOffset:5,dlFmt:v=>(v==null||v===0)?'':shortNum(v),tooltip:{label:c=>meta[1]+': '+fmtVND(c.raw)}});}
-function drawAdMonChart(){const year=+FS.month.slice(0,4),labels=[],leads=[],spend=[];
+function drawAdMonChart(){const year=+FS.month.slice(0,4),prevYr=year-1,labels=[],leads=[],spend=[],leadsPy=[];
   for(let m=1;m<=12;m++){const ym=year+'-'+String(m).padStart(2,'0');const rr=DAILY.filter(r=>r.date.slice(0,7)===ym&&passFilter(r));const a=rr.length?agg(rr):null;
-    labels.push('T'+m);leads.push(a?a.leads:null);spend.push(a?a.spend:null);}
-  mkChart('adMonChart',{data:{labels,datasets:[
-    {type:'bar',label:'Lead',data:leads,backgroundColor:VIOLET+'cc',borderRadius:5,yAxisID:'y',maxBarThickness:26,datalabels:{anchor:'end',align:'top',color:css('--txt')}},
-    {type:'line',label:'Chi phí',data:spend,borderColor:BAD,borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1',datalabels:{anchor:'end',align:'top',color:BAD,font:{size:8.5,weight:'600'},formatter:v=>v?shortNum(v):''}}]},
-    options:{scales:{y:{position:'left',ticks:{callback:v=>fmtN(v)},grace:'20%'},y1:{position:'right',grid:{display:false},ticks:{callback:v=>fmtVND(v)},grace:'20%'}}}},
+    const ymP=prevYr+'-'+String(m).padStart(2,'0');const rrP=DAILY.filter(r=>r.date.slice(0,7)===ymP&&passFilter(r));const aP=rrP.length?agg(rrP):null;
+    labels.push('T'+m);leads.push(a?a.leads:null);spend.push(a?a.spend:null);leadsPy.push(aP?aP.leads:null);}
+  const hasPy=leadsPy.some(v=>v!=null&&v>0);
+  const ds=[
+    {type:'bar',label:'Lead '+year,data:leads,backgroundColor:VIOLET+'cc',borderRadius:6,yAxisID:'y',maxBarThickness:24,datalabels:{anchor:'end',align:'top',color:css('--txt'),font:{size:8,weight:'700'}}}];
+  if(hasPy)ds.push({type:'line',label:'Lead '+prevYr+' (YoY)',data:leadsPy,borderColor:css('--txt3'),borderWidth:2,borderDash:[5,4],pointRadius:2,tension:.3,yAxisID:'y',datalabels:{display:false}});
+  ds.push({type:'line',label:'Chi phí',data:spend,borderColor:BAD,borderWidth:2,pointRadius:2,tension:.3,yAxisID:'y1',datalabels:{anchor:'end',align:'top',color:BAD,font:{size:8,weight:'600'},formatter:v=>v?shortNum(v):''}});
+  mkChart('adMonChart',{data:{labels,datasets:ds},
+    options:{scales:{y:{position:'left',ticks:{callback:v=>fmtN(v)},grace:'25%'},y1:{position:'right',grid:{display:false},ticks:{callback:v=>fmtVND(v)},grace:'20%'}}}},
     {dlFmt:v=>(v==null||v===0)?'':shortNum(v),tooltip:{label:c=>c.dataset.label+': '+(c.dataset.label==='Chi phí'?fmtVND(c.raw):fmtN(c.raw))}});}
 function drawRegPie(regData){const useSpend=regData.some(r=>r.spend>0);const labels=regData.map(r=>r.region),data=regData.map(r=>useSpend?r.spend:r.reach);
   const tot=data.reduce((a,b)=>a+b,0)||1;
@@ -2185,11 +2251,51 @@ function renderDeep(){
   const wdAvg=wdN?wd/wdN:0,weAvg=weN?we/weN:0;
   const weBoost=wdAvg?(weAvg-wdAvg)/wdAvg*100:0;
 
+  // ===== Doanh thu theo vùng (cho bản đồ VN) =====
+  const regRevMap={};
+  for(const r of DAILY){if(r.date.slice(0,7)!==ym||!passFilter(r))continue;
+    regRevMap[r.region]=(regRevMap[r.region]||0)+r.rev;}
+  const regNorm={};
+  Object.keys(regRevMap).forEach(k=>{
+    const low=k.toLowerCase();
+    let key='other';
+    if(low.includes('bắc')||low.includes('bac'))key='bac';
+    else if(low.includes('hcm')||low.includes('hồ chí minh')||low.includes('ho chi minh')||low.includes('sài gòn')||low.includes('sai gon'))key='hcm';
+    else if(low.includes('đông nam')||low.includes('dong nam'))key='dongnam';
+    else if(low.includes('tây nguyên')||low.includes('tay nguyen'))key='taynguyen';
+    else if(low.includes('trung'))key='trung';
+    else if(low.includes('tây')||low.includes('tay')||low.includes('mekong')||low.includes('tphcm'))key='tay';
+    regNorm[key]=(regNorm[key]||0)+regRevMap[k];
+  });
+  const mapMax=Math.max(...Object.values(regNorm),1);
+  const regFill=key=>{const v=regNorm[key]||0;if(!v)return '#dfe5ef';const t=v/mapMax;
+    const r=Math.round(210+(47-210)*t),g=Math.round(224+(107-224)*t),b=Math.round(245+(255-245)*t);
+    return `rgb(${r},${g},${b})`;};
+  const regName={bac:'Miền Bắc',trung:'Miền Trung',taynguyen:'Tây Nguyên',dongnam:'Đông Nam Bộ',hcm:'TP.HCM',tay:'Miền Tây'};
+  const mapRows=Object.keys(regName).map(key=>({key,name:regName[key],rev:regNorm[key]||0}))
+    .sort((a,b)=>b.rev-a.rev);
+  const totMapRev=mapRows.reduce((s,r)=>s+r.rev,0)||1;
+
   document.getElementById('page-deep').innerHTML=`
     <div class="page-head"><div><h1>Phân tích sâu</h1>
-      <div class="ph-sub">Lịch nhiệt doanh thu · Mô hình theo ngày trong tuần · Phát hiện ngày bất thường · Kỳ <b>${ymLabel(ym)}</b></div></div></div>
+      <div class="ph-sub">Bản đồ doanh thu vùng · Lịch nhiệt theo ngày · Mô hình theo thứ · Ngày bất thường · Kỳ <b>${ymLabel(ym)}</b></div></div></div>
 
-    <div class="sec-h"><span class="sn">1</span>Lịch nhiệt doanh thu theo ngày</div>
+    <div class="sec-h"><span class="sn">1</span>Bản đồ doanh thu theo vùng</div>
+    <div class="row2" style="margin-bottom:20px;grid-template-columns:1fr 1fr">
+      <div class="card"><div class="card-sub">Vùng càng <b style="color:var(--amber)">xanh đậm &amp; sáng</b> → doanh thu càng cao. Chấm sáng nhấp nháy đánh dấu vùng dẫn đầu.</div>
+        <div style="display:flex;justify-content:center;padding:8px 0">${vnMapSVG(regFill,regNorm,mapMax,regName)}</div></div>
+      <div class="card"><div class="card-title">Xếp hạng doanh thu theo vùng</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:6px">
+        ${mapRows.map((r,i)=>{const pct=r.rev/totMapRev*100,bw=r.rev/mapMax*100;
+          const col=i===0?'var(--amber)':i===1?VIOLET:i===2?TEAL:'var(--txt3)';
+          return `<div><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:5px">
+            <span style="font-weight:700">${i+1}. ${r.name}</span>
+            <span style="color:var(--txt2)"><b style="color:var(--txt)">${fmtVND(r.rev)}</b> · ${fmtPct(pct,0)}</span></div>
+            <div style="height:9px;border-radius:6px;background:var(--panel2);overflow:hidden;box-shadow:var(--shadow-in)">
+              <div style="height:100%;width:${bw}%;background:${col};border-radius:6px;transition:width .6s"></div></div></div>`;}).join('')}
+        </div></div></div>
+
+    <div class="sec-h"><span class="sn">2</span>Lịch nhiệt doanh thu theo ngày</div>
     <div class="card" style="margin-bottom:20px"><div class="card-sub">Mỗi ô là 1 ngày — màu càng sáng/cam → doanh thu càng cao. Phát hiện nhanh các ngày cao điểm &amp; ngày yếu trong tháng.</div>
       <div class="heatmap">
         <div class="hm-h"></div>
@@ -2202,7 +2308,7 @@ function renderDeep(){
         <span style="margin-left:auto">Trung bình: <b style="color:var(--amber2)">${fmtVND(mean)}</b>/ngày · Cao nhất: <b style="color:var(--good)">${fmtVND(mx)}</b> · Thấp nhất: <b style="color:var(--bad)">${fmtVND(mn)}</b></span>
       </div></div>
 
-    <div class="sec-h"><span class="sn">2</span>Mô hình theo ngày trong tuần</div>
+    <div class="sec-h"><span class="sn">3</span>Mô hình theo ngày trong tuần</div>
     <div class="row2" style="margin-bottom:20px">
       <div class="card"><div class="card-title">Doanh thu trung bình theo thứ</div>
         <div class="chart-box sm"><canvas id="dowRevChart"></canvas></div>
@@ -2218,7 +2324,7 @@ function renderDeep(){
           Thứ thấp nhất: <b style="color:var(--bad)">${dowLabels[dowRev.indexOf(Math.min(...dowRev.filter(v=>v>0)))]}</b>.
         </div></div></div>
 
-    <div class="sec-h"><span class="sn">3</span>Ngày bất thường (z-score &ge; 1.2σ)</div>
+    <div class="sec-h"><span class="sn">4</span>Ngày bất thường (z-score &ge; 1.2σ)</div>
     <div class="card"><div class="card-sub">${anomalies.length?`Phát hiện <b style="color:var(--amber2)">${anomalies.length}</b> ngày có doanh thu lệch &ge;1.2 độ lệch chuẩn so với trung bình kỳ này — cần kiểm tra nguyên nhân (chương trình KM, sự kiện, lễ, v.v.)`:'Không có ngày nào bất thường — doanh thu khá ổn định.'}</div>
       <div class="anomaly-list">${anomalies.length?anomalies.slice(0,10).map(a=>`<div class="anom-row ${a.dir}">
         <div class="ad">Ngày ${a.day} <span style="font-weight:500;color:var(--txt3);font-family:'Be Vietnam Pro'">${a.dow}</span></div>
@@ -2260,6 +2366,8 @@ function renderRegion(){
   const regRows=regData.map(r=>`<tr>
     <td><b>${r.k}</b><br><span style="font-size:10px;color:var(--txt3)">${r.nBranch} cửa hàng</span></td>
     <td>${fmtVND(r.rev)} <span class="chip-lbl">${fmtPct(r.rev/totRev*100,0)}</span></td>
+    <td>${r.rev_t>0?fmtVND(r.rev_t):'—'}</td>
+    <td>${r.rev_t>0?tgtChip(r.rev,r.rev_t):'<span class="chip na">N/A</span>'}</td>
     <td>${r.p?deltaChip(r.rev,r.p.rev):'<span class="chip na">N/A</span>'}</td>
     <td>${fmtN(r.ord)}</td><td>${fmtN(r.traf)}</td><td>${fmtVND(r.atv)}</td>
     <td>${fmtPct(r.crv)}</td>
@@ -2269,37 +2377,45 @@ function renderRegion(){
 
   const typRows=typData.map(r=>`<tr>
     <td><b>${r.k}</b><br><span style="font-size:10px;color:var(--txt3)">${r.nBranch} cửa hàng</span></td>
-    <td>${fmtVND(r.rev)}</td><td>${r.p?deltaChip(r.rev,r.p.rev):'<span class="chip na">N/A</span>'}</td>
+    <td>${fmtVND(r.rev)}</td>
+    <td>${r.rev_t>0?fmtVND(r.rev_t):'—'}</td>
+    <td>${r.rev_t>0?tgtChip(r.rev,r.rev_t):'<span class="chip na">N/A</span>'}</td>
+    <td>${r.p?deltaChip(r.rev,r.p.rev):'<span class="chip na">N/A</span>'}</td>
     <td>${fmtN(r.ord)}</td><td>${fmtVND(r.atv)}</td><td>${fmtN(r.upt,2)}</td>
     <td>${fmtPct(r.crv)}</td><td>${r.spend>0?fmtVND(r.cpl):'—'}</td>
     <td>${r.spend>0?fmtVND(r.cpo):'—'}</td><td>${r.spend>0?r.roas.toFixed(2)+'x':'—'}</td></tr>`).join('');
 
   document.getElementById('page-region').innerHTML=`
     <div class="page-head"><div><h1>Vùng &amp; Loại cửa hàng</h1>
-      <div class="ph-sub">Bóc tách hiệu suất theo khu vực địa lý &amp; loại hình cửa hàng · Kỳ <b>${ymLabel(ym)}</b> · MoM vs ${ymLabel(pm)}</div></div></div>
+      <div class="ph-sub">Bóc tách hiệu suất theo khu vực &amp; loại hình · Kỳ <b>${ymLabel(ym)}</b> · so sánh Mục tiêu &amp; MoM vs ${ymLabel(pm)}</div></div></div>
 
     <div class="sec-h"><span class="sn">1</span>Hiệu suất theo Khu vực</div>
     <div class="row2" style="margin-bottom:20px">
-      <div class="card"><div class="card-title">Doanh thu theo vùng</div><div class="chart-box sm"><canvas id="regRev"></canvas></div></div>
-      <div class="card"><div class="card-title">Tăng trưởng MoM theo vùng</div><div class="chart-box sm"><canvas id="regGrowth"></canvas></div></div></div>
+      <div class="card"><div class="card-title">Doanh thu vs Mục tiêu theo vùng</div><div class="chart-box sm"><canvas id="regRev"></canvas></div></div>
+      <div class="card"><div class="card-title">% Đạt mục tiêu &amp; Tăng trưởng MoM</div><div class="chart-box sm"><canvas id="regGrowth"></canvas></div></div></div>
     <div class="card" style="margin-bottom:24px"><div class="card-title">Bảng chi tiết theo vùng</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Vùng</th><th>Doanh thu</th><th>MoM</th><th>Đơn</th><th>Traffic</th><th>ATV</th><th>CRV</th><th>CP QC</th><th>ROAS</th><th>Đơn Ads%</th></tr></thead><tbody>${regRows}</tbody></table></div></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Vùng</th><th>Doanh thu</th><th>Mục tiêu</th><th>%MT</th><th>MoM</th><th>Đơn</th><th>Traffic</th><th>ATV</th><th>CRV</th><th>CP QC</th><th>ROAS</th><th>Đơn Ads%</th></tr></thead><tbody>${regRows}</tbody></table></div></div>
 
     <div class="sec-h"><span class="sn">2</span>Hiệu suất theo Loại cửa hàng</div>
     <div class="row2" style="margin-bottom:20px">
       <div class="card"><div class="card-title">So sánh các chỉ số chính</div><div class="chart-controls" id="typCtrl"></div><div class="chart-box sm"><canvas id="typChart"></canvas></div></div>
       <div class="card"><div class="card-title">Tỷ trọng doanh thu theo loại</div><div class="chart-box sm"><canvas id="typPie"></canvas></div></div></div>
     <div class="card"><div class="card-title">Bảng chi tiết theo loại cửa hàng</div>
-      <div class="tbl-wrap"><table><thead><tr><th>Loại</th><th>Doanh thu</th><th>MoM</th><th>Đơn</th><th>ATV</th><th>UPT</th><th>CRV</th><th>CP/Lead</th><th>CP/Đơn</th><th>ROAS</th></tr></thead><tbody>${typRows}</tbody></table></div></div>`;
+      <div class="tbl-wrap"><table><thead><tr><th>Loại</th><th>Doanh thu</th><th>Mục tiêu</th><th>%MT</th><th>MoM</th><th>Đơn</th><th>ATV</th><th>UPT</th><th>CRV</th><th>CP/Lead</th><th>CP/Đơn</th><th>ROAS</th></tr></thead><tbody>${typRows}</tbody></table></div></div>`;
 
   mkChart('regRev',{type:'bar',data:{labels:regData.map(r=>r.k),datasets:[
-    {label:'Kỳ này',data:regData.map(r=>r.rev),backgroundColor:AMBER+'cc',borderRadius:6,maxBarThickness:40},
-    {label:'Kỳ trước',data:regData.map(r=>r.p?r.p.rev:0),backgroundColor:css('--txt3')+'66',borderRadius:6,maxBarThickness:40}]},
+    {label:'Thực đạt',data:regData.map(r=>r.rev),backgroundColor:AMBER+'e6',borderRadius:8,maxBarThickness:34},
+    {label:'Mục tiêu',data:regData.map(r=>r.rev_t||0),backgroundColor:PINK+'b3',borderRadius:8,maxBarThickness:34},
+    {label:'Kỳ trước',data:regData.map(r=>r.p?r.p.rev:0),backgroundColor:css('--txt3')+'55',borderRadius:8,maxBarThickness:34}]},
     options:{scales:{y:{ticks:{callback:v=>fmtVND(v)},grace:'15%'}}}},{dlFmt:v=>v?shortNum(v):'',tooltip:{label:c=>c.dataset.label+': '+fmtVND(c.raw)}});
 
-  mkChart('regGrowth',{type:'bar',data:{labels:regData.map(r=>r.k),datasets:[{label:'MoM %',data:regData.map(r=>r.p?pct(r.rev,r.p.rev):0),
-    backgroundColor:regData.map(r=>r.p&&pct(r.rev,r.p.rev)>=0?GOOD+'cc':BAD+'cc'),borderRadius:6,maxBarThickness:40}]},
-    options:{scales:{y:{ticks:{callback:v=>fmtN(v,0)+'%'},grace:'20%'}}}},{dlFmt:v=>v==null?'':fmtN(v,1)+'%',tooltip:{label:c=>'MoM: '+(c.raw>=0?'+':'')+fmtN(c.raw,1)+'%'}});
+  mkChart('regGrowth',{data:{labels:regData.map(r=>r.k),datasets:[
+    {type:'bar',label:'% Đạt mục tiêu',data:regData.map(r=>r.rev_t>0?r.rev/r.rev_t*100:0),
+      backgroundColor:regData.map(r=>r.rev_t>0&&r.rev>=r.rev_t?GOOD+'cc':AMBER+'cc'),borderRadius:8,maxBarThickness:34,yAxisID:'y'},
+    {type:'line',label:'MoM %',data:regData.map(r=>r.p?pct(r.rev,r.p.rev):null),borderColor:VIOLET,borderWidth:2.5,
+      pointRadius:4,pointBackgroundColor:VIOLET,tension:.3,yAxisID:'y1',datalabels:{color:VIOLET,font:{size:9,weight:'700'},anchor:'end',align:'top'}}]},
+    options:{scales:{y:{position:'left',ticks:{callback:v=>fmtN(v,0)+'%'},grace:'20%'},y1:{position:'right',grid:{display:false},ticks:{callback:v=>fmtN(v,0)+'%'},grace:'30%'}}}},
+    {dlFmt:v=>v==null?'':fmtN(v,0)+'%',tooltip:{label:c=>c.dataset.label+': '+(c.raw>=0?'+':'')+fmtN(c.raw,1)+'%'}});
 
   // Loại CH compare
   const TYP_M=[['rev','Doanh thu','vnd'],['atv','ATV','vnd'],['crv','CRV','pct'],['ordShare','Đơn Ads%','pct'],['cpl','CP/Lead','vnd']];
@@ -2309,13 +2425,20 @@ function renderRegion(){
   };buildTypCtrl();
   const meta=TYP_M.find(m=>m[0]===window._typSel);
   const isVnd=meta[2]==='vnd',isPct=meta[2]==='pct';
-  mkChart('typChart',{type:'bar',data:{labels:typData.map(t=>t.k),datasets:[
-    {label:'Kỳ này',data:typData.map(t=>t[meta[0]]),backgroundColor:AMBER+'cc',borderRadius:6,maxBarThickness:54},
-    {label:'Kỳ trước',data:typData.map(t=>t.p?t.p[meta[0]]:0),backgroundColor:css('--txt3')+'66',borderRadius:6,maxBarThickness:54}]},
+  // target cho chỉ số đang chọn (chỉ rev/atv có target trực tiếp)
+  const tgtOf=t=>{if(meta[0]==='rev')return t.rev_t||0;
+    if(meta[0]==='atv')return t.ord_t?t.rev_t/t.ord_t:0;
+    if(meta[0]==='crv')return t.traf_t?t.ord_t/t.traf_t*100:0;return null;};
+  const hasTgt=typData.some(t=>tgtOf(t)>0);
+  const typDs=[
+    {label:'Thực đạt',data:typData.map(t=>t[meta[0]]),backgroundColor:AMBER+'e6',borderRadius:8,maxBarThickness:46}];
+  if(hasTgt)typDs.push({label:'Mục tiêu',data:typData.map(t=>tgtOf(t)||0),backgroundColor:PINK+'b3',borderRadius:8,maxBarThickness:46});
+  typDs.push({label:'Kỳ trước',data:typData.map(t=>t.p?t.p[meta[0]]:0),backgroundColor:css('--txt3')+'55',borderRadius:8,maxBarThickness:46});
+  mkChart('typChart',{type:'bar',data:{labels:typData.map(t=>t.k),datasets:typDs},
     options:{scales:{y:{ticks:{callback:v=>isPct?fmtPct(v,0):isVnd?fmtVND(v):fmtN(v)},grace:'20%'}}}},{dlFmt:v=>v?(isVnd?shortNum(v):isPct?fmtN(v,0)+'%':fmtN(v)):'',tooltip:{label:c=>c.dataset.label+': '+(isVnd?fmtVND(c.raw):isPct?fmtPct(c.raw):fmtN(c.raw))}});
 
   const tpTot=typData.reduce((s,t)=>s+t.rev,0)||1;
-  mkChart('typPie',{type:'doughnut',data:{labels:typData.map(t=>t.k),datasets:[{data:typData.map(t=>t.rev),backgroundColor:[AMBER,INFO,VIOLET,TEAL],borderColor:css('--bg'),borderWidth:3}]},
+  mkChart('typPie',{type:'doughnut',data:{labels:typData.map(t=>t.k),datasets:[{data:typData.map(t=>t.rev),backgroundColor:[AMBER,PINK,VIOLET,TEAL],borderColor:css('--bg'),borderWidth:3}]},
     options:{cutout:'58%'}},{legendPos:'right',dlFmt:v=>(v/tpTot*100>=5?(v/tpTot*100).toFixed(0)+'%':''),dlAnchor:'center',dlAlign:'center',
     tooltip:{label:c=>c.label+': '+fmtVND(c.raw)+' ('+(c.raw/tpTot*100).toFixed(1)+'%)'}});
 }
@@ -2445,7 +2568,49 @@ function renderFunnel(){
         <div class="tbl-wrap"><table><thead><tr><th>Cửa hàng</th><th>Lead</th><th>Đơn QC</th><th>Tỷ lệ</th></tr></thead><tbody>
         ${topL2O.map(b=>`<tr><td><b>${b.branch}</b></td><td>${fmtN(b.leads)}</td><td>${fmtN(b.offpur)}</td><td class="pos">${fmtPct(b.lead2ord,1)}</td></tr>`).join('')||'<tr><td colspan=4 class=empty>—</td></tr>'}</tbody></table></div></div>`;
 }
+
+/* ============================================================
+   BẢN ĐỒ VIỆT NAM (SVG simplified) — choropleth theo vùng
+   6 vùng: Bắc, Trung, Tây Nguyên, Đông Nam Bộ, TP.HCM, Tây
+   ============================================================ */
+function vnMapSVG(fill,regNorm,mapMax,regName){
+  // Các path vùng được vẽ đơn giản hoá theo hình chữ S của VN
+  const regions=[
+    {key:'bac',  path:'M148 28 Q200 32 232 62 Q250 88 238 116 Q258 128 252 158 Q244 182 200 184 Q165 180 150 156 Q112 156 92 124 Q86 88 108 64 Q126 40 148 28 Z', cx:172,cy:104},
+    {key:'trung',path:'M200 184 Q244 182 256 204 Q264 234 252 262 Q262 282 250 304 Q236 320 218 312 Q200 280 192 244 Q186 212 200 184 Z', cx:228,cy:244},
+    {key:'taynguyen',path:'M192 244 Q200 280 218 312 Q210 336 182 344 Q166 320 168 288 Q172 262 192 244 Z', cx:192,cy:296},
+    {key:'dongnam',path:'M218 312 Q236 320 250 304 Q262 326 254 352 Q240 372 214 376 Q196 364 188 344 Q204 332 218 312 Z', cx:224,cy:344},
+    {key:'hcm',  path:'M188 344 Q196 364 214 376 Q208 398 184 402 Q170 392 168 372 Q176 354 188 344 Z', cx:192,cy:374, isCity:true},
+    {key:'tay',  path:'M168 372 Q170 392 184 402 Q200 400 196 428 Q176 452 142 458 Q112 448 120 414 Q138 384 168 372 Z', cx:158,cy:418}
+  ];
+  const totRev=Object.values(regNorm).reduce((a,b)=>a+b,0)||1;
+  let paths='',dots='',labels='';
+  regions.forEach(r=>{
+    const v=regNorm[r.key]||0,t=v/mapMax,pctTot=v/totRev*100;
+    const isHot=t>=0.55;
+    paths+=`<path d="${r.path}" fill="${fill(r.key)}" stroke="#fff" stroke-width="1.5"
+      style="filter:${isHot?'drop-shadow(0 0 '+(4+t*8)+'px rgba(47,107,255,.6))':'none'};transition:all .4s">
+      <title>${regName[r.key]}: ${fmtVND(v)} (${fmtPct(pctTot,0)})</title></path>`;
+    // chấm sáng cho vùng có doanh thu (to & sáng theo doanh thu)
+    if(v>0){const rad=4+t*7;
+      dots+=`<circle cx="${r.cx}" cy="${r.cy}" r="${rad}" fill="${isHot?'#2f6bff':'#7da3ff'}" opacity="${0.5+t*0.5}">
+        ${isHot?`<animate attributeName="r" values="${rad};${rad+4};${rad}" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>`:''}</circle>`;
+      if(isHot)dots+=`<circle cx="${r.cx}" cy="${r.cy}" r="${rad+5}" fill="none" stroke="#2f6bff" stroke-width="1.5" opacity="0.4">
+        <animate attributeName="r" values="${rad+5};${rad+14};${rad+5}" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" values="0.5;0;0.5" dur="2s" repeatCount="indefinite"/></circle>`;
+    }
+  });
+  return `<svg viewBox="0 0 290 490" style="width:100%;max-width:300px;height:auto">
+    <!-- 2 quần đảo -->
+    <circle cx="268" cy="240" r="2.5" fill="#b8c6e0"/><circle cx="272" cy="250" r="2" fill="#b8c6e0"/>
+    <text x="268" y="225" font-size="7" fill="#94a0b8" text-anchor="middle" font-family="Be Vietnam Pro">Hoàng Sa</text>
+    <circle cx="255" cy="370" r="2.5" fill="#b8c6e0"/><circle cx="260" cy="380" r="2" fill="#b8c6e0"/>
+    <text x="258" y="358" font-size="7" fill="#94a0b8" text-anchor="middle" font-family="Be Vietnam Pro">Trường Sa</text>
+    ${paths}${dots}</svg>`;
+}
 </script>
+
 
 <script>window.addEventListener("DOMContentLoaded",()=>{var p=document.getElementById("pwd");if(p)p.focus();});</script>
 </body>
